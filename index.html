@@ -1,0 +1,1048 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>svah-x · Kelvin Peng</title>
+  <meta name="description" content="Kelvin Peng — Undergraduate at the University of Waterloo. Selected projects in ML systems, reinforcement learning, and on-device ML." />
+  <meta property="og:title" content="svah-x · Kelvin Peng" />
+  <meta property="og:description" content="Undergraduate portfolio — selected projects and contact." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://svah-x.ca" />
+  <meta property="og:image" content="https://svah-x.ca/og.png" />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <meta name="theme-color" content="#ffffff" />
+
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: {
+              950:'#050505',
+              900:'#0a0a0a', 800:'#1f1f1f', 700:'#2e2e2e', 600:'#3f3f3f',
+              500:'#525252', 400:'#737373', 300:'#a3a3a3', 200:'#d4d4d4', 100:'#f3f3f3'
+            }
+          },
+          fontFamily: { sans: ["-apple-system","BlinkMacSystemFont","Segoe UI","Roboto","Helvetica Neue","Arial","ui-sans-serif","system-ui"] },
+          letterSpacing: { tighter2: '-.02em' },
+          boxShadow: {
+            soft: "0 1px 2px rgba(0,0,0,.04), 0 12px 40px rgba(0,0,0,.06)"
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root{
+      --ease: cubic-bezier(.2,.8,.2,1);
+    }
+    html{scroll-behavior:smooth}
+    /* Reveal */
+    .reveal{opacity:0;transform:translateY(10px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+    .reveal.on{opacity:1;transform:none}
+
+
+    /* Graph background (pseudo‑3D) */
+    #graphbg{
+      position:fixed;
+      inset:0;
+      width:100%;
+      height:100%;
+      z-index:-2;
+      pointer-events:none;
+      opacity:.85;
+    }
+
+    /* Subtle Apple-ish background (orbs + grain) */
+    .orbs{position:fixed;inset:0;pointer-events:none;z-index:-3;overflow:hidden}
+    .orb{position:absolute;border-radius:9999px;filter:blur(50px);opacity:.25;transform:translate3d(0,0,0);animation:float 14s var(--ease) infinite}
+    .orb:nth-child(1){width:520px;height:520px;left:-140px;top:-120px;background:#e5e7eb;animation-duration:16s}
+    .orb:nth-child(2){width:560px;height:560px;right:-220px;top:80px;background:#f3f4f6;animation-duration:18s;animation-delay:-2s}
+    .orb:nth-child(3){width:520px;height:520px;left:20%;bottom:-240px;background:#e5e7eb;animation-duration:20s;animation-delay:-6s}
+    @keyframes float{
+      0%,100%{transform:translate3d(0,0,0)}
+      50%{transform:translate3d(30px,-24px,0)}
+    }
+    .grain::before{
+      content:"";
+      position:fixed;
+      inset:-25%;
+      pointer-events:none;
+      z-index:-1;
+      opacity:.05;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+      mix-blend-mode:soft-light;
+      animation:grain 10s steps(10) infinite;
+      transform:translateZ(0);
+    }
+    @keyframes grain{
+      0%{transform:translate(0,0)}
+      10%{transform:translate(-5%,-10%)}
+      20%{transform:translate(-15%,5%)}
+      30%{transform:translate(7%,-25%)}
+      40%{transform:translate(-5%,25%)}
+      50%{transform:translate(-15%,10%)}
+      60%{transform:translate(15%,0%)}
+      70%{transform:translate(0%,15%)}
+      80%{transform:translate(3%,35%)}
+      90%{transform:translate(-10%,10%)}
+      100%{transform:translate(0,0)}
+    }
+
+    /* Spotlight hover for cards */
+    .spotlight{position:relative;overflow:hidden}
+    .spotlight::before{
+      content:"";
+      position:absolute;
+      inset:-1px;
+      background:radial-gradient(700px circle at var(--x, 50%) var(--y, 50%), rgba(0,0,0,.08), transparent 42%);
+      opacity:0;
+      transition:opacity .25s var(--ease);
+      pointer-events:none;
+    }
+    .spotlight:hover::before{opacity:1}
+
+    /* Scroll progress bar */
+    #progress{position:fixed;top:0;left:0;height:2px;width:0;background:#0a0a0a;z-index:60;opacity:.9}
+
+    /* Active nav link */
+    .navlink.active{color:#0a0a0a}
+
+    /* Production badge pulse dot */
+    .pulse-dot{
+      width:.55rem;height:.55rem;border-radius:9999px;background:#0a0a0a;position:relative;display:inline-block
+    }
+    .pulse-dot::after{
+      content:"";
+      position:absolute;inset:-6px;border-radius:9999px;border:1px solid rgba(10,10,10,.35);
+      animation:pulse 1.8s var(--ease) infinite;
+    }
+    @keyframes pulse{
+      0%{transform:scale(.7);opacity:.8}
+      70%{transform:scale(1.25);opacity:0}
+      100%{transform:scale(1.25);opacity:0}
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      html{scroll-behavior:auto}
+      .reveal{transition:none}
+      .orb{animation:none}
+      .grain::before{animation:none}
+      #progress{display:none}
+      .pulse-dot::after{animation:none}
+    }
+  </style>
+</head>
+
+<body class="bg-white text-ink-800 font-sans antialiased grain">
+  <canvas id="graphbg" aria-hidden="true"></canvas>
+  <div class="orbs" aria-hidden="true">
+    <div class="orb"></div><div class="orb"></div><div class="orb"></div>
+  </div>
+  <div id="progress" aria-hidden="true"></div>
+
+  <!-- Nav -->
+  <header class="sticky top-0 z-40 backdrop-blur bg-white/70 border-b border-neutral-200">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+      <a href="#top" class="font-semibold tracking-tighter2 text-ink-900">svah‑x</a>
+
+      <nav class="hidden md:flex items-center gap-8 text-sm text-ink-600">
+        <a href="#about" class="navlink hover:text-ink-900 transition-colors">About</a>
+        <a href="#projects" class="navlink hover:text-ink-900 transition-colors">Projects</a>
+        <a href="#contact" class="navlink hover:text-ink-900 transition-colors">Contact</a>
+        <a href="/resume.pdf" target="_blank" rel="noopener"
+          class="px-3 py-1.5 rounded-full border border-neutral-300 hover:bg-neutral-100 text-ink-900 transition shadow-sm">
+          Résumé
+        </a>
+      </nav>
+
+      <!-- Mobile -->
+      <button id="mBtn" class="md:hidden px-3 py-1.5 rounded-full border border-neutral-300 text-sm text-ink-900">
+        Menu
+      </button>
+    </div>
+    <div id="mMenu" class="hidden md:hidden border-t border-neutral-200 bg-white/90 backdrop-blur">
+      <div class="max-w-6xl mx-auto px-4 py-3 grid gap-2 text-sm text-ink-700">
+        <a href="#about" class="py-2">About</a>
+        <a href="#projects" class="py-2">Projects</a>
+        <a href="#contact" class="py-2">Contact</a>
+        <a href="/resume.pdf" target="_blank" rel="noopener" class="py-2">Résumé</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section id="top" class="pt-20 pb-14">
+    <div class="max-w-6xl mx-auto px-4">
+      <p class="text-sm text-ink-500 reveal">Kelvin Peng</p>
+      <h1 class="mt-2 text-4xl md:text-6xl font-semibold tracking-tight text-ink-900 reveal">
+        Building ML systems<br class="hidden md:block" />
+        with a taste for polish
+      </h1>
+
+      <p class="mt-4 max-w-2xl text-lg text-ink-600 reveal">
+        Math (Combinatorics & Optimization + Statistics) @ University of Waterloo.
+        Currently focused on reinforcement learning agents, efficient fine-tuning, and on-device ML.
+      </p>
+
+      <div class="mt-8 flex flex-wrap gap-3 reveal">
+        <a href="#projects"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ink-900 text-white hover:bg-ink-800 transition shadow-soft">
+          View projects
+          <span aria-hidden="true">→</span>
+        </a>
+        <a href="/resume.pdf" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-300 hover:bg-neutral-100 transition text-ink-900">
+          Résumé
+        </a>
+        <a href="#contact"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-300 hover:bg-neutral-100 transition text-ink-900">
+          Contact
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about" class="py-12 border-t border-neutral-200">
+    <div class="max-w-6xl mx-auto px-4 grid md:grid-cols-5 gap-8 items-start">
+      <div class="md:col-span-2 reveal">
+        <h2 class="text-2xl font-semibold tracking-tight text-ink-900">About</h2>
+        <p class="mt-3 text-ink-600">
+          I like problems that sit between theory and engineering: training stability, evaluation discipline,
+          and “product-level” UX for technical tools. Right now I’m building a Geometry Dash agent (vision-based)
+          and learning Isaac Lab for robotics simulation.
+        </p>
+      </div>
+
+      <ul class="md:col-span-3 grid sm:grid-cols-2 gap-4 reveal">
+        <li class="p-4 rounded-2xl border border-neutral-200 bg-white shadow-soft">
+          <div class="text-3xl font-semibold text-ink-900 tabular-nums" data-counter="4">0</div>
+          <div class="text-sm text-ink-600 mt-1">Selected projects</div>
+        </li>
+        <li class="p-4 rounded-2xl border border-neutral-200 bg-white shadow-soft">
+          <div class="text-3xl font-semibold text-ink-900 tabular-nums" data-counter="1">0</div>
+          <div class="text-sm text-ink-600 mt-1">On-device demos</div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Projects -->
+  <section id="projects" class="py-12">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="flex items-end justify-between gap-6">
+        <h2 class="text-2xl font-semibold tracking-tight text-ink-900 reveal">Projects</h2>
+
+        <!-- Filter chips -->
+        <div class="hidden md:flex items-center gap-2 text-xs text-ink-700 reveal" role="tablist" aria-label="Project filters">
+          <button class="filter px-3 py-1.5 rounded-full border border-neutral-300 hover:bg-neutral-100 transition" data-filter="all">All</button>
+          <button class="filter px-3 py-1.5 rounded-full border border-neutral-300 hover:bg-neutral-100 transition" data-filter="rl">RL</button>
+          <button class="filter px-3 py-1.5 rounded-full border border-neutral-300 hover:bg-neutral-100 transition" data-filter="llm">LLM</button>
+          <button class="filter px-3 py-1.5 rounded-full border border-neutral-300 hover:bg-neutral-100 transition" data-filter="ios">iOS</button>
+        </div>
+      </div>
+
+      <div class="mt-6 grid md:grid-cols-2 gap-6">
+
+        <!-- Featured / In production -->
+        <article class="project spotlight reveal p-7 rounded-3xl border border-neutral-200 bg-white shadow-soft md:col-span-2"
+                 data-tags="rl"
+                 aria-label="Geometry Dash agent (in production)">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="text-xs uppercase tracking-wide text-ink-500">Reinforcement Learning · Game AI</div>
+              <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-300 text-xs text-ink-800">
+                <span class="pulse-dot" aria-hidden="true"></span>
+                In production
+              </span>
+            </div>
+            <div class="text-xs text-ink-500">Largest ongoing project</div>
+          </div>
+
+          <h3 class="mt-3 text-2xl md:text-3xl font-semibold tracking-tight text-ink-900">
+            Geometry Dash Agent (vision-based)
+          </h3>
+          <p class="mt-3 text-ink-600">
+            A gameplay agent trained from pixels with a reproducible evaluation harness.
+            The goal is strong generalization across levels through curriculum design and robust training pipelines.
+          </p>
+
+          <div class="mt-4 flex flex-wrap gap-2 text-xs text-ink-700">
+            <span class="px-2 py-1 rounded-full border border-neutral-300">PyTorch</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">RL (PPO-style)</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">CV pipeline</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">Evaluation</span>
+          </div>
+
+          <div class="mt-6 grid md:grid-cols-3 gap-4">
+            <div class="p-4 rounded-2xl border border-neutral-200 bg-neutral-50">
+              <div class="text-sm font-medium text-ink-900">Training</div>
+              <div class="mt-1 text-sm text-ink-600">Curriculum + reward shaping and stable rollouts.</div>
+            </div>
+            <div class="p-4 rounded-2xl border border-neutral-200 bg-neutral-50">
+              <div class="text-sm font-medium text-ink-900">Data</div>
+              <div class="mt-1 text-sm text-ink-600">Support for learning from real levels (dataset ingestion).</div>
+            </div>
+            <div class="p-4 rounded-2xl border border-neutral-200 bg-neutral-50">
+              <div class="text-sm font-medium text-ink-900">Repro</div>
+              <div class="mt-1 text-sm text-ink-600">Metrics, seeds, and sanity checks baked in.</div>
+            </div>
+          </div>
+        </article>
+
+        <article class="project spotlight reveal p-6 rounded-3xl border border-neutral-200 bg-white shadow-soft"
+                 data-tags="llm">
+          <div class="text-xs uppercase tracking-wide text-ink-500">LLM Systems</div>
+          <h3 class="mt-1 text-xl font-medium text-ink-900">SFT on Dream‑7B (LoRA/QLoRA + 4‑bit)</h3>
+          <p class="mt-2 text-ink-600 text-sm">
+            Memory-efficient fine-tuning with quantization and careful eval splits for reasoning improvements on consumer GPUs.
+          </p>
+          <div class="mt-3 flex flex-wrap gap-2 text-xs text-ink-600">
+            <span class="px-2 py-1 rounded-full border border-neutral-300">PyTorch</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">BitsAndBytes</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">QLoRA</span>
+          </div>
+        </article>
+
+        <article class="project spotlight reveal p-6 rounded-3xl border border-neutral-200 bg-white shadow-soft"
+                 data-tags="llm">
+          <div class="text-xs uppercase tracking-wide text-ink-500">Model Training</div>
+          <h3 class="mt-1 text-xl font-medium text-ink-900">Instruction FT on GPT‑OSS‑20B</h3>
+          <p class="mt-2 text-ink-600 text-sm">
+            Large-scale instruction fine-tuning with distributed training and checkpointing; emphasis on stable training + ablations.
+          </p>
+          <div class="mt-3 flex flex-wrap gap-2 text-xs text-ink-600">
+            <span class="px-2 py-1 rounded-full border border-neutral-300">DeepSpeed</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">Gradient Ckpt</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">Eval</span>
+          </div>
+        </article>
+
+        <article class="project spotlight reveal p-6 rounded-3xl border border-neutral-200 bg-white shadow-soft md:col-span-2"
+                 data-tags="ios">
+          <div class="text-xs uppercase tracking-wide text-ink-500">iOS / On‑device ML</div>
+          <h3 class="mt-1 text-xl md:text-2xl font-medium text-ink-900">Real‑time camera translation</h3>
+          <p class="mt-2 text-ink-600">
+            FastVLM + OCR pipeline; SwiftUI front‑end with CoreML for low-latency, private on-device translation.
+          </p>
+          <div class="mt-3 flex flex-wrap gap-2 text-xs text-ink-600">
+            <span class="px-2 py-1 rounded-full border border-neutral-300">SwiftUI</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">CoreML</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">Vision</span>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" class="py-16 border-t border-neutral-200">
+    <div class="max-w-6xl mx-auto px-4">
+      <h2 class="text-2xl font-semibold tracking-tight text-ink-900 reveal">Contact</h2>
+
+      <div class="mt-5 grid gap-2 text-ink-700 reveal">
+        <div><span class="text-ink-500">Email</span> · <a class="underline decoration-neutral-300 hover:decoration-ink-800" href="mailto:kelvinpeng2004@outlook.com">kelvinpeng2004@outlook.com</a></div>
+        <div><span class="text-ink-500">Phone</span> · +1 (236) 990-3288</div>
+        <div><span class="text-ink-500">Location</span> · Waterloo, Ontario</div>
+
+        <div class="mt-4 flex flex-wrap gap-3">
+          <a href="/resume.pdf" target="_blank" rel="noopener"
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-300 hover:bg-neutral-100 transition text-ink-900">
+            View résumé
+          </a>
+          <a href="https://www.linkedin.com/in/kelvin-peng-4b93b52b1/" target="_blank" rel="noopener"
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-300 hover:bg-neutral-100 transition text-ink-900">
+            LinkedIn
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-10 border-t border-neutral-200">
+    <div class="max-w-6xl mx-auto px-4 flex flex-wrap gap-3 items-center justify-between text-sm text-ink-500">
+      <span>© <span id="y"></span> Kelvin Peng</span>
+      <div class="space-x-4">
+        <a href="mailto:kelvinpeng2004@outlook.com" class="hover:text-ink-800">Email</a>
+        <a href="https://www.linkedin.com/in/kelvin-peng-4b93b52b1/" target="_blank" rel="noopener" class="hover:text-ink-800">LinkedIn</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Year
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    // Mobile menu
+    const mBtn = document.getElementById('mBtn');
+    const mMenu = document.getElementById('mMenu');
+    if (mBtn && mMenu){
+      mBtn.addEventListener('click', ()=> mMenu.classList.toggle('hidden'));
+      mMenu.querySelectorAll('a').forEach(a=>a.addEventListener('click', ()=>mMenu.classList.add('hidden')));
+    }
+
+    // Reveal
+    const io = new IntersectionObserver((es)=>{
+      es.forEach(e=>{
+        if(e.isIntersecting){
+          e.target.classList.add('on');
+          io.unobserve(e.target);
+        }
+      })
+    },{rootMargin:'0px 0px -10% 0px'});
+    document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+    // Counters
+    const counters = document.querySelectorAll('[data-counter]');
+    const co = new IntersectionObserver((es)=>{
+      es.forEach(e=>{
+        if(!e.isIntersecting) return;
+        const el = e.target, end = +el.dataset.counter;
+        let cur = 0;
+        const frames = 60;
+        const step = Math.max(1, Math.ceil(end/frames));
+        (function inc(){
+          cur += step;
+          if(cur >= end) el.textContent = end;
+          else { el.textContent = cur; requestAnimationFrame(inc); }
+        })();
+        co.unobserve(el);
+      })
+    },{threshold:.8});
+    counters.forEach(el=>co.observe(el));
+
+    // Scroll progress
+    const bar = document.getElementById('progress');
+    const onScroll = ()=>{
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      const p = max ? (h.scrollTop / max) : 0;
+      bar.style.width = (p*100).toFixed(2) + '%';
+    };
+    window.addEventListener('scroll', onScroll, {passive:true});
+    onScroll();
+
+    // Active nav highlight (desktop)
+    const navlinks = [...document.querySelectorAll('.navlink')];
+    const sections = ['about','projects','contact']
+      .map(id => document.getElementById(id))
+      .filter(Boolean);
+
+    const setActive = (id)=>{
+      navlinks.forEach(a=>{
+        const href = a.getAttribute('href') || '';
+        a.classList.toggle('active', href === ('#'+id));
+      });
+    };
+
+    const sio = new IntersectionObserver((entries)=>{
+      entries.forEach(en=>{
+        if(en.isIntersecting) setActive(en.target.id);
+      });
+    }, {rootMargin:'-35% 0px -55% 0px', threshold:0.01});
+    sections.forEach(s=>sio.observe(s));
+
+    // Spotlight pointer
+    document.querySelectorAll('.spotlight').forEach(card=>{
+      const set = (e)=>{
+        const r = card.getBoundingClientRect();
+        const x = ((e.clientX - r.left) / r.width) * 100;
+        const y = ((e.clientY - r.top) / r.height) * 100;
+        card.style.setProperty('--x', x + '%');
+        card.style.setProperty('--y', y + '%');
+      };
+      card.addEventListener('pointermove', set);
+    });
+
+    // Filter chips
+    const filterBtns = document.querySelectorAll('.filter');
+    const projects = document.querySelectorAll('.project');
+    const applyFilter = (f)=>{
+      projects.forEach(p=>{
+        const tags = (p.dataset.tags || '').split(',').map(s=>s.trim());
+        const ok = (f === 'all') || tags.includes(f);
+        p.style.display = ok ? '' : 'none';
+      });
+      filterBtns.forEach(b=>{
+        const on = (b.dataset.filter === f);
+        b.classList.toggle('bg-ink-900', on);
+        b.classList.toggle('text-white', on);
+        b.classList.toggle('border-ink-900', on);
+      });
+    };
+    filterBtns.forEach(b=>b.addEventListener('click', ()=>applyFilter(b.dataset.filter)));
+    applyFilter('all');
+
+
+
+
+    // Background graph (full‑page ultra‑slow pseudo‑3D)
+    (function(){
+      const canvas = document.getElementById('graphbg');
+      if(!canvas) return;
+
+      const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const ctx = canvas.getContext('2d', { alpha: true });
+      if(!ctx) return;
+
+      // Tuning knobs (safe to tweak)
+      const BASE_N = 120;               // initial vertices
+      const MAX_N  = 180;               // hard cap after clicks
+      const MAX_EDGES = 920;            // keep performance stable after many clicks
+      const VEL = 0.0032;               // per-ms drift magnitude (ultra-slow)
+      const ROT_SPEED = 0.000010;       // radians per ms (ultra-slow)
+
+      // Edges: keep them persistent; only a small fraction rewires at a time
+      const K_NEIGHBORS = 3;            // initial graph density
+      const AUTO_REWIRE_MS = 26000;     // how often to gently rewire a few edges
+      const AUTO_REWIRE_FRAC = 0.05;    // fraction of edges to rewire each time (small!)
+      const EDGE_FADE_OUT = [1600, 2600];
+      const EDGE_FADE_IN  = [1400, 2200];
+
+      // Intro: fade in once, then persist (no periodic "regen")
+      const INTRO_MS = 4200;
+
+      // Click "neural" effect
+      const CLICK_RADIUS_PX = 150;      // around click (screen space)
+      const PRUNE_INNER_PROB = 1.00;    // edges inside the clicked cluster
+      const PRUNE_CROSS_PROB = 0.70;    // edges between cluster and rest
+      const SPAWN_COUNT = 14;           // new vertices that grow in
+      const SPAWN_EVERY_MS = 520;       // spacing between spawns
+      const NODE_FADE_IN_MS = 5200;
+
+      let w=0, h=0, dpr=1;
+      let base=0, lim=0, maxDist=0, zShift=0, fov=0;
+      let t0 = performance.now();
+      const tStart = t0;
+
+      const nodes = [];
+      let edges = [];
+      let pulses = [];
+
+      let mouseX = 0, mouseY = 0;
+
+      // Cache of last projected points (for click selection)
+      let lastPts = null;
+      let curAx = 0.14, curAy = 0;
+
+      // Click spawners
+      let spawners = []; // { next, remaining, center:{x,y,z} }
+
+      const rand = (a,b)=> a + Math.random()*(b-a);
+      const clamp = (v,a,b)=> Math.max(a, Math.min(b, v));
+
+      const setupSpace = ()=>{
+        dpr = Math.min(2, window.devicePixelRatio || 1);
+        w = canvas.width  = Math.floor(window.innerWidth  * dpr);
+        h = canvas.height = Math.floor(window.innerHeight * dpr);
+        canvas.style.width  = window.innerWidth  + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+        ctx.setTransform(1,0,0,1,0,0);
+
+        base = Math.min(window.innerWidth, window.innerHeight);
+        // Spread across the entire viewport
+        lim = Math.max(window.innerWidth, window.innerHeight) * 0.95;
+        // Connection radius scales with screen size
+        maxDist = Math.max(320, Math.min(780, base * 0.78));
+        // Perspective params
+        zShift = base * 0.75 + 180;
+        fov = base * 1.25 + 700;
+      };
+
+      setupSpace();
+      window.addEventListener('resize', ()=>{
+        // Resize only changes projection; do NOT regenerate the graph.
+        setupSpace();
+      }, {passive:true});
+
+      const initNodes = ()=>{
+        nodes.length = 0;
+        for(let i=0;i<BASE_N;i++){
+          nodes.push({
+            x: rand(-lim, lim),
+            y: rand(-lim, lim),
+            z: rand(-lim, lim),
+            vx: rand(-VEL, VEL),
+            vy: rand(-VEL, VEL),
+            vz: rand(-VEL, VEL),
+            born: tStart,
+            fade: INTRO_MS
+          });
+        }
+      };
+      initNodes();
+
+      const rotate = (p, ax, ay)=>{
+        // Rotate around Y then X
+        let x = p.x, y = p.y, z = p.z;
+
+        const cy = Math.cos(ay), sy = Math.sin(ay);
+        const x1 = x*cy + z*sy;
+        const z1 = -x*sy + z*cy;
+
+        const cx = Math.cos(ax), sx = Math.sin(ax);
+        const y2 = y*cx - z1*sx;
+        const z2 = y*sx + z1*cx;
+
+        return {x:x1, y:y2, z:z2};
+      };
+
+      const unrotate = (p, ax, ay)=>{
+        // Inverse of rotate(Y then X) => rotate back by -ax around X, then -ay around Y
+        let x = p.x, y = p.y, z = p.z;
+
+        const cx = Math.cos(-ax), sx = Math.sin(-ax);
+        const y1 = y*cx - z*sx;
+        const z1 = y*sx + z*cx;
+
+        const cy = Math.cos(-ay), sy = Math.sin(-ay);
+        const x2 = x*cy + z1*sy;
+        const z2 = -x*sy + z1*cy;
+
+        return {x:x2, y:y1, z:z2};
+      };
+
+      const project = (x,y,z)=>{
+        const zz = z + zShift;
+        const s  = fov / (fov + zz);
+        return {
+          x: (x*s) * dpr + w/2,
+          y: (y*s) * dpr + h/2,
+          s, zz
+        };
+      };
+
+      const wrap = (n)=>{
+        if(n.x < -lim) n.x = lim; if(n.x > lim) n.x = -lim;
+        if(n.y < -lim) n.y = lim; if(n.y > lim) n.y = -lim;
+        if(n.z < -lim) n.z = lim; if(n.z > lim) n.z = -lim;
+      };
+
+      const nodeFade = (n, now)=>{
+        if(reduce) return 1;
+        const u = (now - n.born) / (n.fade || 1);
+        return clamp(u, 0, 1);
+      };
+
+      const keyOf = (a,b)=>{
+        const x = Math.min(a,b), y = Math.max(a,b);
+        return x + '-' + y;
+      };
+
+      const dist3 = (a,b)=>{
+        const dx = a.x-b.x, dy = a.y-b.y, dz = a.z-b.z;
+        return Math.sqrt(dx*dx + dy*dy + dz*dz);
+      };
+
+      const pickPartner = (i, avoidSet)=>{
+        const ni = nodes[i];
+        const M = nodes.length;
+        let best = -1, bestD = 1e18;
+
+        // Sample a handful of candidates (fast, stable)
+        const SAMPLES = 26;
+        for(let s=0;s<SAMPLES;s++){
+          const j = (Math.random() * M) | 0;
+          if(j === i) continue;
+          if(avoidSet && avoidSet.has(j)) continue;
+          const nj = nodes[j];
+          const d = dist3(ni, nj);
+          if(d < bestD && d < maxDist){
+            bestD = d;
+            best = j;
+          }
+        }
+
+        // Fallback if nothing within maxDist
+        if(best < 0){
+          let j = (Math.random() * M) | 0;
+          if(j === i) j = (j+1) % M;
+          if(avoidSet && avoidSet.has(j)) j = (j+7) % M;
+          best = j;
+        }
+        return best;
+      };
+
+      const buildInitialEdges = ()=>{
+        const M = nodes.length;
+        const newEdges = [];
+        const seen = new Set();
+
+        for(let i=0;i<M;i++){
+          const ni = nodes[i];
+          const cand = [];
+          for(let j=i+1;j<M;j++){
+            const nj = nodes[j];
+            const dx = ni.x - nj.x, dy = ni.y - nj.y, dz = ni.z - nj.z;
+            const d = Math.sqrt(dx*dx + dy*dy + dz*dz);
+            if(d < maxDist) cand.push({j, d});
+          }
+          cand.sort((a,b)=>a.d-b.d);
+
+          const take = Math.min(K_NEIGHBORS, cand.length);
+          for(let t=0;t<take;t++){
+            if(Math.random() < 0.92){
+              const j = cand[t].j;
+              const k = keyOf(i,j);
+              if(seen.has(k)) continue;
+              seen.add(k);
+              newEdges.push({
+                a:i, b:j,
+                state:2, // fade in at start
+                t: tStart,
+                dur: rand(EDGE_FADE_IN[0], EDGE_FADE_IN[1]),
+                avoid:null,
+                anchor:-1
+              });
+            }
+          }
+        }
+        edges = newEdges;
+      };
+
+      buildInitialEdges();
+
+      const fadeOutEdge = (e, now, dur, avoidSet, anchorIdx)=>{
+        e.state = 1;
+        e.t = now;
+        e.dur = dur ?? rand(EDGE_FADE_OUT[0], EDGE_FADE_OUT[1]);
+        e.avoid = avoidSet || null;
+        e.anchor = (anchorIdx ?? -1);
+      };
+
+      const rewireEdge = (e, now)=>{
+        const M = nodes.length;
+        if(M < 2) return;
+
+        // Bias anchor (used for click-driven rewiring)
+        let anchor = (e.anchor != null && e.anchor >= 0 && e.anchor < M)
+          ? e.anchor
+          : (Math.random() < 0.5 ? e.a : e.b);
+
+        const avoidSet = e.avoid;
+        let other = pickPartner(anchor, avoidSet);
+        if(other === anchor) other = (other+1) % M;
+
+        e.a = anchor;
+        e.b = other;
+
+        e.state = 2; // fade in
+        e.t = now;
+        e.dur = rand(EDGE_FADE_IN[0], EDGE_FADE_IN[1]);
+        e.avoid = null;
+        e.anchor = -1;
+      };
+
+      const edgeStateAlpha = (e, now)=>{
+        if(reduce) return 1;
+        const u = clamp((now - e.t) / (e.dur || 1), 0, 1);
+        if(e.state === 0) return 1;
+        if(e.state === 1) return 1 - u;
+        if(e.state === 2) return u;
+        return 1;
+      };
+
+      let lastAutoRewire = tStart;
+
+      window.addEventListener('pointermove', (e)=>{
+        const nx = (e.clientX / window.innerWidth)  * 2 - 1;
+        const ny = (e.clientY / window.innerHeight) * 2 - 1;
+        mouseX = clamp(nx, -1, 1);
+        mouseY = clamp(ny, -1, 1);
+      }, {passive:true});
+
+      // Click: prune local edges, rewire outward, then grow new vertices in that region
+// Corner-safe: if the click lands in a sparse area, we fall back to the nearest-K vertices
+// so every click produces a visible rewiring + growth response.
+window.addEventListener('pointerdown', (ev)=>{
+  if(reduce) return;
+  if(!lastPts || !lastPts.length) return;
+
+  const cx = ev.clientX * dpr;
+  const cy = ev.clientY * dpr;
+  const now = performance.now();
+
+  const R = CLICK_RADIUS_PX * dpr;
+  const R2 = R*R;
+
+  // Collect nearby vertices in screen space
+  let near = [];
+  for(let i=0;i<lastPts.length;i++){
+    const p = lastPts[i];
+    const dx = p.x - cx, dy = p.y - cy;
+    if(dx*dx + dy*dy <= R2) near.push(i);
+  }
+
+  // If the clicked area is sparse (often happens near edges/corners),
+  // fall back to the nearest K vertices so the "neural" effect always triggers.
+  if(near.length < 3){
+    const K = Math.min(14, lastPts.length);
+    const dlist = new Array(lastPts.length);
+    for(let i=0;i<lastPts.length;i++){
+      const p = lastPts[i];
+      const dx = p.x - cx, dy = p.y - cy;
+      dlist[i] = { i, d: dx*dx + dy*dy };
+    }
+    dlist.sort((a,b)=>a.d-b.d);
+    near = dlist.slice(0, K).map(o=>o.i);
+  }
+
+  const S = new Set(near);
+
+  // 1) Prune: edges in/around the clicked cluster disconnect quickly,
+  //    and the clicked vertices preferentially reconnect to the rest.
+  for(const e of edges){
+    const aIn = S.has(e.a);
+    const bIn = S.has(e.b);
+
+    if(aIn && bIn){
+      if(Math.random() < PRUNE_INNER_PROB){
+        const anchor = (Math.random() < 0.5) ? e.a : e.b;
+        fadeOutEdge(e, now, rand(780, 1180), S, anchor);
+      }
+    }else if(aIn || bIn){
+      if(Math.random() < PRUNE_CROSS_PROB){
+        const anchor = aIn ? e.a : e.b;
+        fadeOutEdge(e, now, rand(980, 1580), S, anchor);
+      }
+    }
+  }
+
+  // 2) Synaptic burst (pulses), biased toward the clicked neighborhood
+  for(let k=0;k<18;k++){
+    const idx = near[(Math.random()*near.length)|0];
+
+    // Prefer an edge touching idx so the pulse feels "local"
+    let found = null;
+    for(let tries=0; tries<18; tries++){
+      const ed = edges[(Math.random()*edges.length)|0];
+      if(ed && (ed.a === idx || ed.b === idx)){ found = ed; break; }
+    }
+    if(found){
+      pulses.push({ i: found.a, j: found.b, born: now + rand(0, 900), life: rand(1200, 2400) });
+    }else{
+      const j = (Math.random()*nodes.length)|0;
+      if(j !== idx) pulses.push({ i: idx, j, born: now + rand(0, 900), life: rand(1200, 2400) });
+    }
+  }
+
+  // 3) Spawn new vertices near the click (always), fading in gradually
+  // Map click position to a point in rotated space at z=0, then unrotate back to world space.
+  const z0 = 0;
+  const s = fov / (fov + (z0 + zShift));
+  const xr = ((cx - w/2) / dpr) / s;
+  const yr = ((cy - h/2) / dpr) / s;
+  const center = unrotate({x:xr, y:yr, z:z0}, curAx, curAy);
+
+  // Extra spawns when the region is sparse (edge/corner clicks feel alive)
+  const extra = Math.max(0, 6 - Math.min(6, near.length));
+
+  spawners.push({
+    next: now + 220,
+    remaining: SPAWN_COUNT + extra,
+    center
+  });
+}, {passive:true});const trimEdges = ()=>{
+        if(edges.length <= MAX_EDGES) return;
+        edges = edges.slice(-MAX_EDGES);
+      };
+
+      const spawnOne = (sp, now)=>{
+        if(nodes.length >= MAX_N) return;
+
+        const c = sp.center;
+        // Small cloud around the clicked spot
+        const spread = Math.max(70, Math.min(160, base * 0.18));
+        const n = {
+          x: c.x + rand(-spread, spread),
+          y: c.y + rand(-spread, spread),
+          z: c.z + rand(-spread, spread),
+          vx: rand(-VEL, VEL) * 0.85,
+          vy: rand(-VEL, VEL) * 0.85,
+          vz: rand(-VEL, VEL) * 0.85,
+          born: now,
+          fade: NODE_FADE_IN_MS
+        };
+        wrap(n);
+        const idx = nodes.push(n) - 1;
+
+        // Connect the new node into the existing network with a couple of edges
+        const a = idx;
+        const b1 = pickPartner(a, null);
+        edges.push({ a, b: b1, state:2, t: now, dur: rand(EDGE_FADE_IN[0], EDGE_FADE_IN[1]), avoid:null, anchor:-1 });
+
+        const b2 = pickPartner(a, null);
+        edges.push({ a, b: b2, state:2, t: now + 220, dur: rand(EDGE_FADE_IN[0], EDGE_FADE_IN[1]), avoid:null, anchor:-1 });
+
+        trimEdges();
+      };
+
+      const draw = (now)=>{
+        const dt = Math.min(33, now - t0);
+        t0 = now;
+
+        ctx.clearRect(0,0,w,h);
+
+        // Very subtle vignette (keeps it clean)
+        const vg = ctx.createRadialGradient(w/2, h/2, Math.min(w,h)*0.18, w/2, h/2, Math.min(w,h)*0.85);
+        vg.addColorStop(0, 'rgba(0,0,0,0)');
+        vg.addColorStop(1, 'rgba(0,0,0,0.035)');
+        ctx.fillStyle = vg;
+        ctx.fillRect(0,0,w,h);
+
+        // Ultra-slow camera rotation + gentle mouse parallax
+        const sway = Math.sin(now * 0.000018) * 0.10;
+        curAx = 0.14 + mouseY * 0.018 + sway * 0.25;
+        curAy = (now * ROT_SPEED) + mouseX * 0.030 + sway;
+
+        // Drift nodes (extremely slow)
+        for(const n of nodes){
+          n.x += n.vx * dt;
+          n.y += n.vy * dt;
+          n.z += n.vz * dt;
+          wrap(n);
+        }
+
+        // Intro fade-in (once)
+        const intro = reduce ? 1 : clamp((now - tStart) / INTRO_MS, 0, 1);
+
+        // Precompute projected points
+        const M = nodes.length;
+        const pts = new Array(M);
+        for(let i=0;i<M;i++){
+          const r = rotate(nodes[i], curAx, curAy);
+          const p = project(r.x, r.y, r.z);
+          p.z = r.z;
+          pts[i] = p;
+        }
+        lastPts = pts;
+
+        // Gentle auto-rewire: only a small subset at a time (no "disappear & respawn")
+        if(!reduce && (now - lastAutoRewire) > AUTO_REWIRE_MS){
+          lastAutoRewire = now;
+          const m = Math.max(2, Math.floor(edges.length * AUTO_REWIRE_FRAC));
+          for(let k=0;k<m;k++){
+            const idx = (Math.random() * edges.length) | 0;
+            const e = edges[idx];
+            if(!e) continue;
+            if(e.state !== 0) continue; // don't stack fades
+            fadeOutEdge(e, now + rand(0, 900), rand(EDGE_FADE_OUT[0], EDGE_FADE_OUT[1]), null, -1);
+          }
+        }
+
+        // Update edges state machine
+        for(const e of edges){
+          if(e.state === 1){ // fading out
+            const u = (now - e.t) / (e.dur || 1);
+            if(u >= 1) rewireEdge(e, now);
+          }else if(e.state === 2){ // fading in
+            const u = (now - e.t) / (e.dur || 1);
+            if(u >= 1) e.state = 0;
+          }
+        }
+
+        // Spawning new vertices over time
+        if(spawners.length){
+          const keep = [];
+          for(const sp of spawners){
+            while(sp.remaining > 0 && now >= sp.next){
+              spawnOne(sp, now);
+              sp.remaining--;
+              sp.next += SPAWN_EVERY_MS + rand(-120, 160);
+            }
+            if(sp.remaining > 0) keep.push(sp);
+          }
+          spawners = keep;
+        }
+
+        // Edges
+        ctx.lineWidth = 1.1 * dpr;
+
+        // Dedupe while drawing (keeps things tidy even after many clicks)
+        const seen = new Set();
+        for(const e of edges){
+          if(e.a === e.b) continue;
+          const a = e.a, b = e.b;
+          if(a < 0 || b < 0 || a >= pts.length || b >= pts.length) continue;
+
+          const k = keyOf(a,b);
+          if(seen.has(k)) continue;
+          seen.add(k);
+
+          const p1 = pts[a], p2 = pts[b];
+          const depthA = clamp(((p1.zz + p2.zz) / 2) / (zShift*2), 0, 1);
+
+          const stateA = edgeStateAlpha(e, now);
+          const alpha = 0.19 * intro * stateA * (1 - depthA * 0.45);
+          if(alpha <= 0.002) continue;
+
+          ctx.strokeStyle = `rgba(10,10,10,${alpha})`;
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+
+          // Rare pulse traveling along an edge
+          if(!reduce && Math.random() < 0.00035){
+            pulses.push({ i: a, j: b, born: now, life: rand(1800, 3600) });
+          }
+        }
+
+        // Pulses
+        if(pulses.length){
+          const next = [];
+          for(const p of pulses){
+            const u = (now - p.born) / p.life;
+            if(u < 0) { next.push(p); continue; }
+            if(u >= 1) continue;
+            next.push(p);
+
+            const p1 = pts[p.i], p2 = pts[p.j];
+            if(!p1 || !p2) continue;
+
+            const x = p1.x + (p2.x - p1.x) * u;
+            const y = p1.y + (p2.y - p1.y) * u;
+            const r = (1.2 + 1.2 * (1-u)) * dpr;
+
+            ctx.fillStyle = `rgba(10,10,10,${0.22 * intro})`;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI*2);
+            ctx.fill();
+          }
+          pulses = next.slice(-140); // cap
+        }
+
+        // Nodes
+        for(let i=0;i<M;i++){
+          const p = pts[i];
+          const r = (1.1 + 2.2 * p.s) * dpr;
+
+          const nf = nodeFade(nodes[i], now);
+          const alpha = 0.26 * intro * nf * clamp((p.s - 0.25)/0.75, 0, 1);
+
+          if(alpha <= 0.002) continue;
+
+          ctx.fillStyle = `rgba(10,10,10,${alpha})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, r, 0, Math.PI*2);
+          ctx.fill();
+        }
+
+        if(!reduce) requestAnimationFrame(draw);
+      };
+
+      requestAnimationFrame(draw);
+    })();
+
+
+  </script>
+</body>
+</html>
