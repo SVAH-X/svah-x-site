@@ -1,0 +1,945 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>svah-x · 彭从楷</title>
+
+  <meta name="description" content="彭从楷 — 滑铁卢大学数学系（组合与优化）。研究方向：世界模型强化学习、拓扑引导优化、大语言模型高效微调。" />
+  <meta name="keywords" content="彭从楷, Kelvin Peng, 机器学习, 强化学习, 拓扑数据分析, LLM, PyTorch, JAX, 滑铁卢大学, 数学, Isaac Sim, Isaac Lab, 世界模型, 计算机视觉, 机器人" />
+  <meta name="author" content="Kelvin Peng" />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="canonical" href="https://svah-x.ca/zh.html" />
+  <meta name="theme-color" content="#0b0e14" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root{
+      --ink-900:#0b0e14;
+      --ink-800:#121826;
+      --ink-700:#2b3444;
+      --ink-600:#4b5563;
+      --ink-500:#6b7280;
+      --neutral-50:#fafafa;
+      --neutral-100:#f5f5f5;
+      --neutral-200:#e5e7eb;
+      --neutral-300:#d1d5db;
+      --shadow-soft: 0 10px 30px rgba(0,0,0,.06);
+    }
+    .text-ink-900{color:var(--ink-900)}
+    .text-ink-800{color:var(--ink-800)}
+    .text-ink-700{color:var(--ink-700)}
+    .text-ink-600{color:var(--ink-600)}
+    .text-ink-500{color:var(--ink-500)}
+    .border-neutral-200{border-color:var(--neutral-200)}
+    .border-neutral-300{border-color:var(--neutral-300)}
+    .bg-neutral-50{background:var(--neutral-50)}
+    .bg-neutral-100{background:var(--neutral-100)}
+    .bg-ink-900{background:var(--ink-900)}
+    .bg-ink-800{background:var(--ink-800)}
+    .shadow-soft{box-shadow:var(--shadow-soft)}
+    .tracking-tighter2{letter-spacing:-.02em}
+
+    body{
+      background:
+        radial-gradient(1100px 540px at 20% -10%, rgba(15, 23, 42, .10), transparent 58%),
+        radial-gradient(900px 520px at 90% 10%, rgba(2, 132, 199, .10), transparent 62%),
+        linear-gradient(#fff, #fff);
+    }
+
+    #graphbg{
+      position: fixed;
+      inset: 0;
+      z-index:-2;
+      pointer-events:none;
+      opacity:.95;
+    }
+
+    .reveal{
+      opacity:0;
+      transform: translateY(14px);
+      transition: opacity .7s ease, transform .7s ease;
+      will-change: opacity, transform;
+    }
+    .reveal.on{
+      opacity:1;
+      transform: translateY(0);
+    }
+
+    .spotlight{
+      position: relative;
+      overflow: hidden;
+    }
+    .spotlight::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background: radial-gradient(700px 360px at var(--x, 50%) var(--y, 20%),
+                  rgba(2,132,199,.18), transparent 60%);
+      opacity:0;
+      transition: opacity .25s ease;
+      pointer-events:none;
+    }
+    .spotlight:hover::before{opacity:1;}
+
+    .pulse-dot{
+      width:8px;height:8px;border-radius:999px;
+      background:#10b981;
+      box-shadow:0 0 0 0 rgba(16,185,129,.7);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse{
+      0%{box-shadow:0 0 0 0 rgba(16,185,129,.6)}
+      70%{box-shadow:0 0 0 10px rgba(16,185,129,0)}
+      100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}
+    }
+  </style>
+</head>
+
+<body class="text-ink-900">
+  <canvas id="graphbg"></canvas>
+
+  <div id="top"></div>
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 backdrop-blur bg-white/70 border-b border-neutral-200">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+      <a href="#top" class="font-semibold tracking-tighter2 text-ink-900">svah-x</a>
+
+      <nav class="hidden md:flex items-center gap-6 text-sm text-ink-600">
+        <a href="#skills" class="navlink hover:text-ink-900 transition-colors">技能</a>
+        <a href="#about" class="navlink hover:text-ink-900 transition-colors">关于</a>
+        <a href="#tutorials" class="navlink hover:text-ink-900 transition-colors">课程</a>
+        <a href="#projects" class="navlink hover:text-ink-900 transition-colors">项目</a>
+        <a href="#contact" class="navlink hover:text-ink-900 transition-colors">联系</a>
+        <a href="https://github.com/SVAH-X" target="_blank" rel="noopener" class="navlink hover:text-ink-900 transition-colors">GitHub</a>
+        <a href="/chinese.pdf" target="_blank" rel="noopener"
+          class="px-3 py-1.5 rounded-full border border-neutral-300 hover:bg-neutral-100 text-ink-900 transition shadow-sm">
+          简历
+        </a>
+        <a href="/en.html" class="px-2 py-1 rounded text-xs border border-neutral-300 hover:bg-neutral-100 transition">EN</a>
+      </nav>
+
+      <button id="mBtn" class="md:hidden px-3 py-1.5 rounded-full border border-neutral-300 text-sm text-ink-900">
+        菜单
+      </button>
+    </div>
+
+    <div id="mMenu" class="hidden md:hidden border-t border-neutral-200 bg-white/90 backdrop-blur">
+      <div class="max-w-6xl mx-auto px-4 py-3 grid gap-2 text-sm text-ink-700">
+        <a href="#skills" class="py-2">技能</a>
+        <a href="#about" class="py-2">关于</a>
+        <a href="#tutorials" class="py-2">课程</a>
+        <a href="#projects" class="py-2">项目</a>
+        <a href="#contact" class="py-2">联系</a>
+        <a href="https://github.com/SVAH-X" target="_blank" rel="noopener" class="py-2">GitHub</a>
+        <a href="/chinese.pdf" target="_blank" rel="noopener" class="py-2">简历</a>
+        <a href="/en.html" class="py-2">English</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="pt-14 pb-12">
+    <div class="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-10 items-center">
+
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-300 bg-white shadow-soft text-xs text-ink-700 reveal">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          滑铁卢大学 · 数学 · 机器学习
+        </div>
+
+        <h1 class="mt-5 text-4xl md:text-5xl font-semibold tracking-tight text-ink-900 reveal">
+          彭从楷
+        </h1>
+
+        <p class="mt-4 max-w-2xl text-lg text-ink-600 reveal">
+          滑铁卢大学数学系（组合与优化 + 统计）本科在读。
+          研究方向：世界模型强化学习、拓扑引导优化、大语言模型高效微调。
+        </p>
+
+        <div class="mt-8 flex flex-wrap gap-3 reveal">
+          <a href="#projects"
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ink-900 text-white hover:bg-ink-800 transition shadow-soft">
+            查看项目 <span aria-hidden="true">→</span>
+          </a>
+          <a href="/chinese.pdf" target="_blank" rel="noopener"
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-300 hover:bg-neutral-100 transition text-ink-900">
+            简历
+          </a>
+          <a href="https://github.com/SVAH-X" target="_blank" rel="noopener"
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-300 hover:bg-neutral-100 transition text-ink-900">
+            GitHub
+          </a>
+          <a href="#contact"
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-300 hover:bg-neutral-100 transition text-ink-900">
+            联系我
+          </a>
+        </div>
+
+        <div class="mt-8 grid grid-cols-2 gap-4 reveal">
+          <div class="p-4 rounded-2xl border border-neutral-200 bg-white shadow-soft">
+            <div class="text-sm text-ink-500">研究方向</div>
+            <div class="mt-1 font-medium text-ink-900">世界模型 · TDA · LLM</div>
+          </div>
+          <div class="p-4 rounded-2xl border border-neutral-200 bg-white shadow-soft">
+            <div class="text-sm text-ink-500">技术栈</div>
+            <div class="mt-1 font-medium text-ink-900">PyTorch · JAX · DeepSpeed</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal">
+        <div class="p-3 rounded-3xl border border-neutral-200 bg-white shadow-soft">
+          <div class="rounded-2xl overflow-hidden border border-neutral-200">
+            <img src="/assets/hero.jpg" alt="Abstract hero" class="w-full h-auto block" />
+          </div>
+
+          <div class="p-4">
+            <div class="text-xs uppercase tracking-wide text-ink-500">精选仓库</div>
+            <div class="mt-3 grid gap-2">
+              <a href="https://github.com/SVAH-X/gd_agent" target="_blank" rel="noopener"
+                 class="inline-flex items-center justify-between gap-3 px-3 py-2 rounded-2xl border border-neutral-200 bg-neutral-50 hover:bg-neutral-100 transition text-sm text-ink-800">
+                <span class="font-medium">gd_agent</span>
+                <span class="text-ink-500" aria-hidden="true">→</span>
+              </a>
+              <a href="https://github.com/SVAH-X/topoadamw" target="_blank" rel="noopener"
+                 class="inline-flex items-center justify-between gap-3 px-3 py-2 rounded-2xl border border-neutral-200 bg-neutral-50 hover:bg-neutral-100 transition text-sm text-ink-800">
+                <span class="font-medium">topoadamw</span>
+                <span class="text-ink-500" aria-hidden="true">→</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Skills -->
+  <section id="skills" class="py-16 border-t border-neutral-200">
+    <div class="max-w-6xl mx-auto px-4">
+      <h2 class="text-2xl font-semibold tracking-tight text-ink-900 reveal">专业技能</h2>
+
+      <div class="mt-8 grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Languages -->
+        <div class="reveal p-5 rounded-2xl border border-neutral-200 bg-white shadow-soft">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center">
+              <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+              </svg>
+            </div>
+            <h3 class="font-medium text-ink-900">编程语言</h3>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700 font-medium">Python</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">C/C++</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">Racket</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">SQL</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">Bash</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">LaTeX</span>
+          </div>
+        </div>
+
+        <!-- ML Frameworks -->
+        <div class="reveal p-5 rounded-2xl border border-neutral-200 bg-white shadow-soft">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+              <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <h3 class="font-medium text-ink-900">AI 框架</h3>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700 font-medium">PyTorch</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700 font-medium">JAX</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">DeepSpeed</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">HuggingFace</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">TensorBoard</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">Gradio</span>
+          </div>
+        </div>
+
+        <!-- RL & Simulation -->
+        <div class="reveal p-5 rounded-2xl border border-neutral-200 bg-white shadow-soft">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+              <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <h3 class="font-medium text-ink-900">强化学习 & 仿真</h3>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700 font-medium">Isaac Sim</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700 font-medium">Isaac Lab</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">Gymnasium</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">MuJoCo</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">DMControl</span>
+          </div>
+        </div>
+
+        <!-- Mathematics -->
+        <div class="reveal p-5 rounded-2xl border border-neutral-200 bg-white shadow-soft">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center">
+              <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <h3 class="font-medium text-ink-900">数学</h3>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">组合优化</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">图论</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">TDA</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">密码学</span>
+          </div>
+        </div>
+
+        <!-- Deep Learning -->
+        <div class="reveal p-5 rounded-2xl border border-neutral-200 bg-white shadow-soft">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center">
+              <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+              </svg>
+            </div>
+            <h3 class="font-medium text-ink-900">深度学习</h3>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">CNNs</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">Vision Transformers</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">迁移学习</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">QLoRA</span>
+          </div>
+        </div>
+
+        <!-- RL Methods -->
+        <div class="reveal p-5 rounded-2xl border border-neutral-200 bg-white shadow-soft">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+              <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+            </div>
+            <h3 class="font-medium text-ink-900">强化学习方法</h3>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">DQN</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">PPO</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">世界模型</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">MPC</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">CEM</span>
+          </div>
+        </div>
+
+        <!-- Research Tools -->
+        <div class="reveal p-5 rounded-2xl border border-neutral-200 bg-white shadow-soft">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+              <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+              </svg>
+            </div>
+            <h3 class="font-medium text-ink-900">研究工具</h3>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">GUDHI</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">Ripser</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">WandB</span>
+            <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">RunPod</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about" class="py-16 border-t border-neutral-200">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="grid md:grid-cols-5 gap-10 items-start">
+        <div class="md:col-span-3 reveal">
+          <h2 class="text-2xl font-semibold tracking-tight text-ink-900">关于我</h2>
+          <p class="mt-4 text-ink-600 leading-relaxed">
+            我专注于<strong class="text-ink-800">数学理论</strong>与<strong class="text-ink-800">机器学习工程</strong>的交叉领域。
+            研究重点在于将严谨的数学基础应用于实际工程：训练稳定性、损失地形几何分析、以及构建可复现的研究原型。
+          </p>
+          <p class="mt-3 text-ink-600 leading-relaxed">
+            目前正在探索<strong class="text-ink-800">拓扑数据分析</strong>如何指导优化器行为，
+            以及<strong class="text-ink-800">世界模型</strong>如何在高频环境中学习潜在动力学。
+            我注重评估规范，致力于编写他人能够实际运行的研究代码。
+          </p>
+        </div>
+
+        <ul class="md:col-span-2 grid gap-4 reveal">
+          <li class="p-5 rounded-2xl border border-neutral-200 bg-white shadow-soft">
+            <div class="text-3xl font-semibold text-ink-900 tabular-nums" data-counter="3">0</div>
+            <div class="text-sm text-ink-600 mt-1">研究项目</div>
+          </li>
+          <li class="p-5 rounded-2xl border border-neutral-200 bg-white shadow-soft">
+            <div class="text-3xl font-semibold text-ink-900 tabular-nums" data-counter="4">0</div>
+            <div class="text-sm text-ink-600 mt-1">开源仓库</div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Education -->
+      <div class="mt-12 reveal">
+        <h3 class="text-lg font-semibold tracking-tight text-ink-900">教育背景</h3>
+        <div class="mt-4 p-6 rounded-2xl border border-neutral-200 bg-white shadow-soft">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <div class="font-semibold text-ink-900">滑铁卢大学</div>
+              <div class="text-ink-600 mt-1">数学学士 — 组合与优化</div>
+            </div>
+            <div class="text-sm text-ink-500">2023年9月 — 预计2027年</div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-neutral-100">
+            <div class="text-sm text-ink-500 mb-2">相关课程</div>
+            <div class="flex flex-wrap gap-2">
+              <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">图论</span>
+              <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">凸优化</span>
+              <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">应用密码学</span>
+              <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">量子信息处理</span>
+              <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">数论</span>
+              <span class="px-2.5 py-1 text-xs rounded-full bg-neutral-100 text-ink-700">线性代数</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Awards -->
+      <div class="mt-8 reveal">
+        <h3 class="text-lg font-semibold tracking-tight text-ink-900">竞赛获奖</h3>
+        <div class="mt-4 grid sm:grid-cols-2 gap-4">
+          <div class="p-5 rounded-2xl border border-neutral-200 bg-white shadow-soft">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 text-sm font-semibold">#1</div>
+              <div>
+                <div class="font-medium text-ink-900">Euclid 数学竞赛</div>
+                <div class="text-sm text-ink-500">2021 — 2022</div>
+              </div>
+            </div>
+            <div class="mt-3 text-sm text-ink-600">校级冠军（2次），Honour Roll，<strong class="text-ink-800">BC 省第一</strong></div>
+          </div>
+          <div class="p-5 rounded-2xl border border-neutral-200 bg-white shadow-soft">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sky-700 text-sm font-semibold">H</div>
+              <div>
+                <div class="font-medium text-ink-900">加拿大高级数学竞赛</div>
+                <div class="text-sm text-ink-500">2022</div>
+              </div>
+            </div>
+            <div class="mt-3 text-sm text-ink-600">校级冠军，Honour Roll</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tutorials -->
+  <section id="tutorials" class="py-16 border-t border-neutral-200">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="reveal">
+        <h2 class="text-2xl font-semibold tracking-tight text-ink-900">开源课程</h2>
+        <p class="mt-2 text-ink-600">深度学习与强化学习开源教育资源。</p>
+      </div>
+
+      <div class="mt-6 grid md:grid-cols-2 gap-6">
+
+        <article class="spotlight reveal p-6 rounded-3xl border border-neutral-200 bg-white shadow-soft">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+                <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+              </div>
+              <span class="text-xs uppercase tracking-wide text-ink-500">深度学习 · PyTorch</span>
+            </div>
+            <a href="https://github.com/SVAH-X/pytorch-deep-learning-course" target="_blank" rel="noopener"
+               class="text-xs underline decoration-neutral-300 hover:decoration-ink-800 text-ink-700">
+              GitHub →
+            </a>
+          </div>
+          <h3 class="mt-3 text-xl font-medium text-ink-900">PyTorch 深度学习课程</h3>
+          <p class="mt-2 text-ink-600 text-sm">
+            10 章节实战课程，从张量到部署。涵盖 CNNs、迁移学习、Vision Transformers (ViT)、TensorBoard 实验追踪、Gradio 模型部署。
+          </p>
+          <div class="mt-4 flex flex-wrap gap-2 text-xs text-ink-600">
+            <span class="px-2 py-1 rounded-full border border-neutral-300">PyTorch</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">CNNs</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">Vision Transformers</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">迁移学习</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">TensorBoard</span>
+          </div>
+        </article>
+
+        <article class="spotlight reveal p-6 rounded-3xl border border-neutral-200 bg-white shadow-soft">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+              </div>
+              <span class="text-xs uppercase tracking-wide text-ink-500">强化学习 · 世界模型</span>
+            </div>
+            <a href="https://github.com/SVAH-X/reinforcement-learning-world-models-course" target="_blank" rel="noopener"
+               class="text-xs underline decoration-neutral-300 hover:decoration-ink-800 text-ink-700">
+              GitHub →
+            </a>
+          </div>
+          <h3 class="mt-3 text-xl font-medium text-ink-900">强化学习与世界模型课程</h3>
+          <p class="mt-2 text-ink-600 text-sm">
+            4 阶段课程，从 RL 基础到机器人级世界模型。涵盖 DQN、PPO、基于模型的规划（MPC、CEM）、Isaac Lab 集成与 Sim-to-Real。
+          </p>
+          <div class="mt-4 flex flex-wrap gap-2 text-xs text-ink-600">
+            <span class="px-2 py-1 rounded-full border border-neutral-300">DQN / PPO</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">世界模型</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">MuJoCo</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">Isaac Lab</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">Sim-to-Real</span>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects -->
+  <section id="projects" class="py-16 border-t border-neutral-200">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="flex items-end justify-between gap-6">
+        <div class="reveal">
+          <h2 class="text-2xl font-semibold tracking-tight text-ink-900">研究项目</h2>
+          <p class="mt-2 text-ink-600">强化学习、优化、大语言模型系统相关工作精选。</p>
+        </div>
+
+        <div class="hidden md:flex items-center gap-2 text-xs text-ink-700 reveal" role="tablist">
+          <button class="filter px-3 py-1.5 rounded-full border border-neutral-300 hover:bg-neutral-100 transition" data-filter="all">全部</button>
+          <button class="filter px-3 py-1.5 rounded-full border border-neutral-300 hover:bg-neutral-100 transition" data-filter="rl">强化学习</button>
+          <button class="filter px-3 py-1.5 rounded-full border border-neutral-300 hover:bg-neutral-100 transition" data-filter="opt">优化</button>
+          <button class="filter px-3 py-1.5 rounded-full border border-neutral-300 hover:bg-neutral-100 transition" data-filter="llm">LLM</button>
+        </div>
+      </div>
+
+      <div class="mt-6 grid md:grid-cols-2 gap-6">
+
+        <article class="project spotlight reveal p-7 rounded-3xl border border-neutral-200 bg-white shadow-soft md:col-span-2" data-tags="rl">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="text-xs uppercase tracking-wide text-ink-500">世界模型 · 强化学习</div>
+              <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-300 text-xs text-ink-800">
+                研究原型
+              </span>
+            </div>
+            <a href="https://github.com/SVAH-X/gd_agent" target="_blank" rel="noopener"
+               class="text-xs underline decoration-neutral-300 hover:decoration-ink-800 text-ink-700">
+              GitHub →
+            </a>
+          </div>
+
+          <h3 class="mt-3 text-2xl md:text-3xl font-semibold tracking-tight text-ink-900">
+            Geometry Dash 世界模型智能体（DreamerV3 风格）
+          </h3>
+          <p class="mt-3 text-ink-600">
+            面向 60Hz 物理驱动游戏环境的 DreamerV3 风格智能体，具有严格的失败约束。
+            基于自定义 Gymnasium 栈、Windows↔WSL 同步、高频日志记录实现可复现评估。
+          </p>
+
+          <div class="mt-4 flex flex-wrap gap-2 text-xs text-ink-700">
+            <span class="px-2 py-1 rounded-full border border-neutral-300">JAX</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">DreamerV3 风格</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">Gymnasium</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">Windows↔WSL 桥接</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">高频日志</span>
+          </div>
+
+          <div class="mt-6 grid md:grid-cols-3 gap-4">
+            <div class="p-4 rounded-2xl border border-neutral-200 bg-neutral-50">
+              <div class="text-sm font-medium text-ink-900">环境</div>
+              <div class="mt-1 text-sm text-ink-600">自定义 Gymnasium 环境 + 可复现评估框架</div>
+            </div>
+            <div class="p-4 rounded-2xl border border-neutral-200 bg-neutral-50">
+              <div class="text-sm font-medium text-ink-900">系统</div>
+              <div class="mt-1 text-sm text-ink-600">Windows↔WSL 桥接同步观测/状态与动作</div>
+            </div>
+            <div class="p-4 rounded-2xl border border-neutral-200 bg-neutral-50">
+              <div class="text-sm font-medium text-ink-900">调试</div>
+              <div class="mt-1 text-sm text-ink-600">高频轨迹记录用于离线分析与健全性检查</div>
+            </div>
+          </div>
+        </article>
+
+        <article class="project spotlight reveal p-6 rounded-3xl border border-neutral-200 bg-white shadow-soft" data-tags="opt">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="text-xs uppercase tracking-wide text-ink-500">优化 · TDA</div>
+            <a href="https://github.com/SVAH-X/topoadamw" target="_blank" rel="noopener"
+               class="text-xs underline decoration-neutral-300 hover:decoration-ink-800 text-ink-700">
+              GitHub →
+            </a>
+          </div>
+          <h3 class="mt-2 text-xl font-medium text-ink-900">TopoAdamW：TDA 引导的元优化器</h3>
+          <p class="mt-2 text-ink-600 text-sm">
+            基于 GUDHI 的 PyTorch 优化器，利用 TDA 特征探测局部损失地形几何（尖锐 vs 平坦区域），
+            并通过稳定性保障机制自适应调整更新行为。
+          </p>
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <div class="p-3 rounded-xl bg-neutral-50 border border-neutral-100">
+              <div class="text-xs text-ink-500">方法</div>
+              <div class="text-sm font-medium text-ink-800 mt-0.5">拓扑特征提取</div>
+            </div>
+            <div class="p-3 rounded-xl bg-neutral-50 border border-neutral-100">
+              <div class="text-xs text-ink-500">基准</div>
+              <div class="text-sm font-medium text-ink-800 mt-0.5">CIFAR-10 vs AdamW</div>
+            </div>
+          </div>
+          <div class="mt-3 flex flex-wrap gap-2 text-xs text-ink-600">
+            <span class="px-2 py-1 rounded-full border border-neutral-300">PyTorch</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">GUDHI</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">损失地形</span>
+          </div>
+        </article>
+
+        <article class="project spotlight reveal p-6 rounded-3xl border border-neutral-200 bg-white shadow-soft" data-tags="llm">
+          <div class="text-xs uppercase tracking-wide text-ink-500">LLM 系统</div>
+          <h3 class="mt-1 text-xl font-medium text-ink-900">大语言模型高效微调</h3>
+          <p class="mt-2 text-ink-600 text-sm">
+            面向 Dream-7B 和 GPT-OSS-20B 的内存高效微调流水线，
+            采用 QLoRA、梯度检查点和 DeepSpeed 优化。
+          </p>
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-100">
+              <div class="text-xs text-emerald-600">数学推理</div>
+              <div class="text-lg font-semibold text-emerald-700">+20%</div>
+            </div>
+            <div class="p-3 rounded-xl bg-sky-50 border border-sky-100">
+              <div class="text-xs text-sky-600">显存降低</div>
+              <div class="text-lg font-semibold text-sky-700">60%</div>
+            </div>
+          </div>
+          <div class="mt-3 flex flex-wrap gap-2 text-xs text-ink-600">
+            <span class="px-2 py-1 rounded-full border border-neutral-300">DeepSpeed</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">QLoRA 4-bit</span>
+            <span class="px-2 py-1 rounded-full border border-neutral-300">RunPod</span>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" class="py-16 border-t border-neutral-200">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="grid md:grid-cols-2 gap-10 items-start">
+        <div class="reveal">
+          <h2 class="text-2xl font-semibold tracking-tight text-ink-900">联系我</h2>
+          <p class="mt-3 text-ink-600">
+            欢迎研究合作、实习机会和有趣的项目。
+            如果你想讨论机器学习研究或数学，随时联系我。
+          </p>
+
+          <div class="mt-6 space-y-3">
+            <a href="mailto:kelvinpeng2004@outlook.com" class="flex items-center gap-3 text-ink-700 hover:text-ink-900 transition group">
+              <div class="w-10 h-10 rounded-xl bg-neutral-100 group-hover:bg-neutral-200 transition flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <span>kelvinpeng2004@outlook.com</span>
+            </a>
+            <div class="flex items-center gap-3 text-ink-600">
+              <div class="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </div>
+              <span>加拿大安大略省滑铁卢</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal grid grid-cols-2 gap-4">
+          <a href="/chinese.pdf" target="_blank" rel="noopener"
+             class="spotlight p-5 rounded-2xl border border-neutral-200 bg-white shadow-soft hover:border-neutral-300 transition group">
+            <div class="w-10 h-10 rounded-xl bg-ink-900 text-white flex items-center justify-center mb-3">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <div class="font-medium text-ink-900">简历</div>
+            <div class="text-sm text-ink-500 mt-1">查看 PDF</div>
+          </a>
+          <a href="https://linkedin.com/in/k2peng" target="_blank" rel="noopener"
+             class="spotlight p-5 rounded-2xl border border-neutral-200 bg-white shadow-soft hover:border-neutral-300 transition group">
+            <div class="w-10 h-10 rounded-xl bg-[#0077b5] text-white flex items-center justify-center mb-3">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+              </svg>
+            </div>
+            <div class="font-medium text-ink-900">LinkedIn</div>
+            <div class="text-sm text-ink-500 mt-1">建立联系</div>
+          </a>
+          <a href="https://github.com/SVAH-X" target="_blank" rel="noopener"
+             class="spotlight p-5 rounded-2xl border border-neutral-200 bg-white shadow-soft hover:border-neutral-300 transition group col-span-2">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl bg-ink-900 text-white flex items-center justify-center">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+                </svg>
+              </div>
+              <div>
+                <div class="font-medium text-ink-900">GitHub</div>
+                <div class="text-sm text-ink-500">github.com/SVAH-X</div>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-12 border-t border-neutral-200 bg-neutral-50/50">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="flex flex-col md:flex-row gap-6 items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="font-semibold tracking-tighter2 text-ink-900">svah-x</span>
+          <span class="text-ink-400">·</span>
+          <span class="text-sm text-ink-500">© <span id="y"></span> 彭从楷</span>
+        </div>
+        <div class="flex items-center gap-6 text-sm text-ink-500">
+          <a href="mailto:kelvinpeng2004@outlook.com" class="hover:text-ink-900 transition">邮箱</a>
+          <a href="https://linkedin.com/in/k2peng" target="_blank" rel="noopener" class="hover:text-ink-900 transition">LinkedIn</a>
+          <a href="https://github.com/SVAH-X" target="_blank" rel="noopener" class="hover:text-ink-900 transition">GitHub</a>
+          <a href="/chinese.pdf" target="_blank" rel="noopener" class="hover:text-ink-900 transition">简历</a>
+          <a href="/en.html" class="hover:text-ink-900 transition">English</a>
+        </div>
+      </div>
+      <div class="mt-6 pt-6 border-t border-neutral-200 text-center text-xs text-ink-400">
+        数学与机器学习研究
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    const mBtn = document.getElementById('mBtn');
+    const mMenu = document.getElementById('mMenu');
+    if (mBtn && mMenu){
+      mBtn.addEventListener('click', ()=> mMenu.classList.toggle('hidden'));
+      mMenu.querySelectorAll('a').forEach(a=> a.addEventListener('click', ()=> mMenu.classList.add('hidden')));
+    }
+
+    const els = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          e.target.classList.add('on');
+          io.unobserve(e.target);
+        }
+      });
+    }, {threshold: 0.12});
+    els.forEach(el=>io.observe(el));
+
+    const counters = document.querySelectorAll('[data-counter]');
+    const cio = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(!e.isIntersecting) return;
+        const el = e.target;
+        const target = parseInt(el.getAttribute('data-counter')||'0', 10);
+        let cur = 0;
+        const steps = 18;
+        const inc = Math.max(1, Math.round(target / steps));
+        const tick = ()=>{
+          cur += inc;
+          if(cur >= target){cur = target; el.textContent = cur; return;}
+          el.textContent = cur;
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+        cio.unobserve(el);
+      });
+    }, {threshold: 0.6});
+    counters.forEach(c=>cio.observe(c));
+
+    document.querySelectorAll('.spotlight').forEach(card=>{
+      const set = (e)=>{
+        const r = card.getBoundingClientRect();
+        const x = ((e.clientX - r.left) / r.width) * 100;
+        const y = ((e.clientY - r.top) / r.height) * 100;
+        card.style.setProperty('--x', x + '%');
+        card.style.setProperty('--y', y + '%');
+      };
+      card.addEventListener('pointermove', set);
+    });
+
+    const filterBtns = document.querySelectorAll('.filter');
+    const projects = document.querySelectorAll('.project');
+    const applyFilter = (f)=>{
+      projects.forEach(p=>{
+        const tags = (p.dataset.tags || '').split(',').map(s=>s.trim());
+        const ok = (f === 'all') || tags.includes(f);
+        p.style.display = ok ? '' : 'none';
+      });
+      filterBtns.forEach(b=>{
+        const on = (b.dataset.filter === f);
+        b.classList.toggle('bg-ink-900', on);
+        b.classList.toggle('text-white', on);
+        b.classList.toggle('border-ink-900', on);
+      });
+    };
+    filterBtns.forEach(b=>b.addEventListener('click', ()=>applyFilter(b.dataset.filter)));
+    applyFilter('all');
+
+    (function(){
+      const canvas = document.getElementById('graphbg');
+      if(!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let w=0, h=0, dpr=1;
+      const nodes = [];
+      const edges = [];
+      let N = 160;
+      const rand = (a,b)=>a + Math.random()*(b-a);
+      function resize(){
+        dpr = Math.min(2, window.devicePixelRatio || 1);
+        w = canvas.width = Math.floor(window.innerWidth * dpr);
+        h = canvas.height = Math.floor(window.innerHeight * dpr);
+        canvas.style.width = window.innerWidth + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+        const area = window.innerWidth * window.innerHeight;
+        if(area < 500000) N = 110;
+        else if(area < 900000) N = 150;
+        else N = 190;
+      }
+      function buildGraph(){
+        nodes.length = 0;
+        edges.length = 0;
+        for(let i=0;i<N;i++){
+          nodes.push({
+            x: rand(-1.25, 1.25),
+            y: rand(-1.25, 1.25),
+            z: rand(-1.25, 1.25),
+            vx: rand(-0.00035, 0.00035),
+            vy: rand(-0.00035, 0.00035),
+            vz: rand(-0.00025, 0.00025),
+            s: rand(0.7, 1.4)
+          });
+        }
+        const k = 4;
+        for(let i=0;i<N;i++){
+          const ds = [];
+          const a = nodes[i];
+          for(let j=0;j<N;j++){
+            if(i===j) continue;
+            const b = nodes[j];
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            const dz = a.z - b.z;
+            ds.push([dx*dx + dy*dy + dz*dz, j]);
+          }
+          ds.sort((u,v)=>u[0]-v[0]);
+          for(let t=0;t<k;t++){
+            const j = ds[t][1];
+            if(i < j) edges.push([i,j]);
+          }
+        }
+      }
+      function rotY(x,z,a){
+        const ca = Math.cos(a), sa = Math.sin(a);
+        return [x*ca + z*sa, -x*sa + z*ca];
+      }
+      function rotX(y,z,a){
+        const ca = Math.cos(a), sa = Math.sin(a);
+        return [y*ca - z*sa, y*sa + z*ca];
+      }
+      function project(p, ax, ay, px, py, zoom){
+        let x=p.x, y=p.y, z=p.z;
+        [x,z] = rotY(x,z,ax);
+        [y,z] = rotX(y,z,ay);
+        const depth = 3.0;
+        const zz = z + 1.15;
+        const scale = (depth / (depth + zz)) * zoom;
+        const X = (x + px) * scale * w * 0.40 + w * 0.5;
+        const Y = (y + py) * scale * h * 0.40 + h * 0.5;
+        return {X, Y, A: scale};
+      }
+      function step(){
+        const b = 1.35;
+        for(const p of nodes){
+          p.x += p.vx; p.y += p.vy; p.z += p.vz;
+          if(p.x < -b || p.x > b) p.vx *= -1;
+          if(p.y < -b || p.y > b) p.vy *= -1;
+          if(p.z < -b || p.z > b) p.vz *= -1;
+          p.vx *= 0.9996;
+          p.vy *= 0.9996;
+          p.vz *= 0.9997;
+        }
+      }
+      function draw(t){
+        ctx.clearRect(0,0,w,h);
+        ctx.fillStyle = 'rgba(255,255,255,0.28)';
+        ctx.fillRect(0,0,w,h);
+        const time = t * 0.001;
+        const ax = 0.18 * Math.sin(time * 0.35);
+        const ay = 0.14 * Math.cos(time * 0.28);
+        const px = 0.06 * Math.sin(time * 0.22);
+        const py = 0.05 * Math.cos(time * 0.20);
+        const zoom = 1.03 + 0.02 * Math.sin(time * 0.18);
+        const P = nodes.map(p => project(p, ax, ay, px, py, zoom));
+        ctx.lineWidth = 1 * dpr;
+        const maxDist = 900 * dpr;
+        for(const [i,j] of edges){
+          const a = P[i], b = P[j];
+          const dist = Math.hypot(a.X-b.X, a.Y-b.Y);
+          const closeness = Math.max(0, 1 - dist / maxDist);
+          if(closeness <= 0) continue;
+          const depthA = (a.A + b.A) * 0.5;
+          const alpha = Math.min(0.26, 0.04 + closeness * 0.22) * (0.55 + depthA * 0.70);
+          ctx.strokeStyle = `rgba(15,23,42,${alpha})`;
+          ctx.beginPath();
+          ctx.moveTo(a.X, a.Y);
+          ctx.lineTo(b.X, b.Y);
+          ctx.stroke();
+        }
+        for(let i=0;i<nodes.length;i++){
+          const p = nodes[i];
+          const q = P[i];
+          const r = (1.25 + 2.8 * p.s) * q.A * dpr;
+          const alpha = Math.min(0.68, 0.10 + q.A * 0.30);
+          ctx.fillStyle = `rgba(2,132,199,${alpha})`;
+          ctx.beginPath();
+          ctx.arc(q.X, q.Y, r, 0, Math.PI*2);
+          ctx.fill();
+        }
+      }
+      function animate(t){
+        if(reduce){
+          draw(0);
+          return;
+        }
+        draw(t);
+        step();
+        requestAnimationFrame(animate);
+      }
+      resize();
+      buildGraph();
+      window.addEventListener('resize', ()=>{
+        resize();
+        buildGraph();
+      });
+      requestAnimationFrame(animate);
+    })();
+  </script>
+</body>
+</html>
