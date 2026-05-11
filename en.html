@@ -41,21 +41,70 @@
   }
   </script>
 
+  <script>
+    // Apply theme before paint to avoid FOUC
+    (function(){
+      try {
+        var stored = localStorage.getItem('theme');
+        var theme = stored || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch(e){
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    :root{
-      --ink-900:#0b0e14;
-      --ink-800:#121826;
-      --ink-700:#2b3444;
-      --ink-600:#4b5563;
-      --ink-500:#6b7280;
-      --neutral-50:#fafafa;
-      --neutral-100:#f5f5f5;
-      --neutral-200:#e5e7eb;
-      --neutral-300:#d1d5db;
+    /* ===== Theme tokens ===== */
+    :root {
+      --ink-900: #0b0e14;
+      --ink-800: #121826;
+      --ink-700: #2b3444;
+      --ink-600: #4b5563;
+      --ink-500: #6b7280;
+      --neutral-50: #fafafa;
+      --neutral-100: #f5f5f5;
+      --neutral-200: #e5e7eb;
+      --neutral-300: #d1d5db;
       --shadow-soft: 0 10px 30px rgba(0,0,0,.06);
+
+      --page-base: #ffffff;
+      --page-tint-1: rgba(15, 23, 42, .10);
+      --page-tint-2: rgba(2, 132, 199, .10);
+
+      --grid-line: rgba(11,14,20,0.05);
+      --decor-dot: rgba(11,14,20,0.10);
+      --dotgrid-fill: '%230b0e14';
+      --dotgrid-opacity: '0.14';
     }
+
+    [data-theme="dark"] {
+      --ink-900: #f5f5f5;
+      --ink-800: #e5e7eb;
+      --ink-700: #cbd5e1;
+      --ink-600: #94a3b8;
+      --ink-500: #6b7d96;
+      /* Layered surfaces (deepest -> brightest):
+         page #050810 → recessed #0a0f1c (--neutral-50)
+         → card #131927 (bg-white override) → chip #1a2030 (--neutral-100)
+         → border #232a3b (--neutral-200) → muted-border #344056 (--neutral-300) */
+      --neutral-50: #0a0f1c;
+      --neutral-100: #1a2030;
+      --neutral-200: #232a3b;
+      --neutral-300: #344056;
+      --shadow-soft: 0 10px 30px rgba(0,0,0,.40);
+
+      --page-base: #050810;
+      --page-tint-1: rgba(56, 189, 248, .08);
+      --page-tint-2: rgba(167, 139, 250, .08);
+
+      --grid-line: rgba(255,255,255,0.06);
+      --decor-dot: rgba(255,255,255,0.10);
+    }
+
+    /* ===== Custom utility classes (use vars so they auto-flip) ===== */
     .text-ink-900{color:var(--ink-900)}
     .text-ink-800{color:var(--ink-800)}
     .text-ink-700{color:var(--ink-700)}
@@ -70,20 +119,143 @@
     .shadow-soft{box-shadow:var(--shadow-soft)}
     .tracking-tighter2{letter-spacing:-.02em}
 
-    body{
+    /* ===== Tailwind utility overrides for dark mode =====
+       Tailwind CDN injects its own .bg-neutral-* / .border-neutral-* rules at
+       runtime after this <style> block, so plain custom rules of the same name
+       lose. We use [data-theme="dark"] selectors here — higher specificity
+       (attribute + class) beats plain class regardless of source order. */
+    [data-theme="dark"] .bg-white { background-color: #131927; }
+    [data-theme="dark"] .bg-white\/70 { background-color: rgba(19,25,39,0.72); }
+    [data-theme="dark"] .bg-white\/90 { background-color: rgba(19,25,39,0.92); }
+    /* Neutral backgrounds — must be explicit in dark, Tailwind otherwise wins */
+    [data-theme="dark"] .bg-neutral-50 { background-color: #0a0f1c; }
+    [data-theme="dark"] .bg-neutral-100 { background-color: #1a2030; }
+    [data-theme="dark"] .bg-neutral-200 { background-color: #232a3b; }
+    [data-theme="dark"] .bg-neutral-50\/50 { background-color: rgba(10,15,28,0.55); }
+    /* Neutral borders — same Tailwind override problem */
+    [data-theme="dark"] .border-neutral-100 { border-color: rgba(255,255,255,0.06); }
+    [data-theme="dark"] .border-neutral-200 { border-color: rgba(255,255,255,0.10); }
+    [data-theme="dark"] .border-neutral-300 { border-color: rgba(255,255,255,0.16); }
+    /* Hover variants */
+    [data-theme="dark"] .hover\:bg-neutral-100:hover { background-color: #1f2638; }
+    [data-theme="dark"] .hover\:bg-neutral-200:hover { background-color: #2a3550; }
+    [data-theme="dark"] .group:hover .group-hover\:bg-neutral-200 { background-color: #2a3550; }
+    /* Ink-accent surfaces (buttons, contact icons): keep as a dark accent in dark mode
+       so white text on top stays readable. These intentionally do NOT use the var. */
+    [data-theme="dark"] .bg-ink-900 { background: #1d2638; }
+    [data-theme="dark"] .bg-ink-800 { background: #2a3550; }
+    [data-theme="dark"] .hover\:bg-ink-800:hover { background: #2a3550; }
+    /* Tinted icon containers — dim in dark mode */
+    [data-theme="dark"] .bg-violet-100 { background-color: rgba(167,139,250,0.16); }
+    [data-theme="dark"] .bg-orange-100 { background-color: rgba(251,146,60,0.16); }
+    [data-theme="dark"] .bg-emerald-100 { background-color: rgba(52,211,153,0.16); }
+    [data-theme="dark"] .bg-sky-100 { background-color: rgba(56,189,248,0.16); }
+    [data-theme="dark"] .bg-rose-100 { background-color: rgba(251,113,133,0.16); }
+    [data-theme="dark"] .bg-amber-100 { background-color: rgba(252,211,77,0.16); }
+    [data-theme="dark"] .bg-indigo-100 { background-color: rgba(129,140,248,0.16); }
+    [data-theme="dark"] .text-amber-700 { color: #fbbf24; }
+    [data-theme="dark"] .text-sky-700 { color: #38bdf8; }
+
+    body {
       background:
-        radial-gradient(1100px 540px at 20% -10%, rgba(15, 23, 42, .10), transparent 58%),
-        radial-gradient(900px 520px at 90% 10%, rgba(2, 132, 199, .10), transparent 62%),
-        linear-gradient(#fff, #fff);
+        radial-gradient(1100px 540px at 20% -10%, var(--page-tint-1), transparent 58%),
+        radial-gradient(900px 520px at 90% 10%, var(--page-tint-2), transparent 62%),
+        var(--page-base);
+      color: var(--ink-900);
+      transition: background-color .25s ease, color .25s ease;
     }
 
-    /* Background canvas */
-    #graphbg{
+    /* ===== Featured Work section ===== */
+    .proj-grid-pattern {
+      background-image:
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .proj-section-decor {
+      background-image:
+        radial-gradient(circle at 12% 18%, var(--decor-dot) 1px, transparent 1.5px),
+        radial-gradient(circle at 78% 32%, var(--decor-dot) 1px, transparent 1.5px),
+        radial-gradient(circle at 42% 78%, var(--decor-dot) 1px, transparent 1.5px);
+      background-size: 240px 240px, 320px 320px, 180px 180px;
+    }
+    .mono-track { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.18em; }
+
+    /* Project card surfaces (theme-aware) */
+    .proj-card { background: var(--page-base); border-color: var(--neutral-200); transition: background .25s ease, border-color .25s ease; }
+    [data-theme="dark"] .proj-card { background: #0f1420; border-color: rgba(255,255,255,0.10); }
+    /* Image area: always light so AlterEgo / GD logos stay vivid in both themes */
+    .proj-card-img { background: #f5f5f5; }
+    .proj-card-mark { color: #0b0e14; }
+    .proj-card-mark-sub { color: #6b7280; }
+
+    /* Activity Pulse panel */
+    .activity-panel { transition: background .25s ease, border-color .25s ease; }
+    .activity-log-entry {
+      animation: log-slide-in .45s ease both;
+    }
+    @keyframes log-slide-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .src-tag {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      margin-right: 6px;
+      background: rgba(11,14,20,0.07);
+      color: var(--ink-700);
+      vertical-align: 1px;
+    }
+    [data-theme="dark"] .src-tag { background: rgba(255,255,255,0.08); color: var(--ink-700); }
+    .src-tag.src-github { background: rgba(124,58,237,0.10); color: #6d28d9; }
+    .src-tag.src-claude { background: rgba(217,119,6,0.10); color: #b45309; }
+    .src-tag.src-arxiv { background: rgba(2,132,199,0.10); color: #0369a1; }
+    .src-tag.src-hackathon { background: rgba(16,185,129,0.10); color: #047857; }
+    .src-tag.src-site { background: rgba(99,102,241,0.10); color: #4338ca; }
+    [data-theme="dark"] .src-tag.src-github { background: rgba(167,139,250,0.16); color: #c4b5fd; }
+    [data-theme="dark"] .src-tag.src-claude { background: rgba(251,191,36,0.16); color: #fcd34d; }
+    [data-theme="dark"] .src-tag.src-arxiv { background: rgba(56,189,248,0.16); color: #7dd3fc; }
+    [data-theme="dark"] .src-tag.src-hackathon { background: rgba(52,211,153,0.16); color: #6ee7b7; }
+    [data-theme="dark"] .src-tag.src-site { background: rgba(129,140,248,0.16); color: #a5b4fc; }
+
+    /* Theme toggle button */
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid var(--neutral-300);
+      color: var(--ink-700);
+      cursor: pointer;
+      background: transparent;
+      transition: background .2s ease, color .2s ease, border-color .2s ease;
+    }
+    .theme-toggle:hover { background: var(--neutral-100); color: var(--ink-900); }
+    .theme-toggle svg { width: 16px; height: 16px; }
+    .theme-toggle .icon-sun { display: none; }
+    .theme-toggle .icon-moon { display: block; }
+    [data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+    /* ===== Static square-dot grid (parallax on scroll only) ===== */
+    #dotgrid{
       position: fixed;
       inset: 0;
-      z-index:-2;
-      pointer-events:none;
-      opacity:.95;
+      z-index: -1;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Crect x='13' y='13' width='2' height='2' fill='%230b0e14' fill-opacity='0.14'/%3E%3C/svg%3E");
+      background-size: 28px 28px;
+      background-position: 0 0;
+      will-change: background-position;
+    }
+    [data-theme="dark"] #dotgrid {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Crect x='13' y='13' width='2' height='2' fill='%23ffffff' fill-opacity='0.16'/%3E%3C/svg%3E");
     }
 
     /* Reveal */
@@ -131,7 +303,7 @@
 </head>
 
 <body class="text-ink-900">
-  <canvas id="graphbg"></canvas>
+  <div id="dotgrid" aria-hidden="true"></div>
 
   <div id="top"></div>
 
@@ -152,12 +324,32 @@
           Résumé
         </a>
         <a href="/zh.html" class="px-2 py-1 rounded text-xs border border-neutral-300 hover:bg-neutral-100 transition">中文</a>
+        <button id="themeBtn" type="button" class="theme-toggle" aria-label="Toggle theme">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+          </svg>
+        </button>
       </nav>
 
       <!-- Mobile -->
-      <button id="mBtn" class="md:hidden px-3 py-1.5 rounded-full border border-neutral-300 text-sm text-ink-900">
-        Menu
-      </button>
+      <div class="md:hidden flex items-center gap-2">
+        <button id="themeBtnMobile" type="button" class="theme-toggle" aria-label="Toggle theme">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+          </svg>
+        </button>
+        <button id="mBtn" class="px-3 py-1.5 rounded-full border border-neutral-300 text-sm text-ink-900">
+          Menu
+        </button>
+      </div>
     </div>
 
     <div id="mMenu" class="hidden md:hidden border-t border-neutral-200 bg-white/90 backdrop-blur">
@@ -189,8 +381,8 @@
         </h1>
 
         <p class="mt-4 max-w-2xl text-lg text-ink-600 reveal">
-          Math (Combinatorics & Optimization + Statistics) @ University of Waterloo.
-          Currently focused on world-model reinforcement learning, topology-guided optimization, and efficient LLM fine-tuning.
+          Mathematics undergraduate at the University of Waterloo (Combinatorics & Optimization + Statistics).
+          Interested in reinforcement learning, world models, and the mathematical foundations of modern ML systems.
         </p>
 
         <div class="mt-8 flex flex-wrap gap-3 reveal">
@@ -224,29 +416,43 @@
         </div>
       </div>
 
-      <div class="reveal">
-        <div class="p-3 rounded-3xl border border-neutral-200 bg-white shadow-soft">
-          <div class="rounded-2xl overflow-hidden border border-neutral-200">
-            <img src="/assets/hero.jpg" alt="Abstract hero" class="w-full h-auto block" />
-          </div>
-
-          <div class="p-4">
-            <div class="text-xs uppercase tracking-wide text-ink-500">Featured repos</div>
-            <div class="mt-3 grid gap-2">
-              <a href="https://github.com/SVAH-X/gd_agent" target="_blank" rel="noopener"
-                 class="inline-flex items-center justify-between gap-3 px-3 py-2 rounded-2xl border border-neutral-200 bg-neutral-50 hover:bg-neutral-100 transition text-sm text-ink-800">
-                <span class="font-medium">gd_agent</span>
-                <span class="text-ink-500" aria-hidden="true">→</span>
-              </a>
-              <a href="https://github.com/SVAH-X/topoadamw" target="_blank" rel="noopener"
-                 class="inline-flex items-center justify-between gap-3 px-3 py-2 rounded-2xl border border-neutral-200 bg-neutral-50 hover:bg-neutral-100 transition text-sm text-ink-800">
-                <span class="font-medium">topoadamw</span>
-                <span class="text-ink-500" aria-hidden="true">→</span>
-              </a>
+      <aside class="reveal activity-panel relative rounded-3xl border border-neutral-200 bg-white shadow-soft overflow-hidden">
+        <div class="absolute inset-0 proj-section-decor opacity-40 pointer-events-none"></div>
+        <div class="relative p-5">
+          <div class="grid grid-cols-3 gap-2.5">
+            <div class="rounded-xl border border-neutral-200 p-3">
+              <div class="mono-track text-[9px] uppercase text-ink-500 leading-tight">GitHub<br/>Followers</div>
+              <div id="stat-followers" class="mt-1.5 text-2xl font-semibold tabular-nums text-ink-900">—</div>
+            </div>
+            <div class="rounded-xl border border-neutral-200 p-3">
+              <div class="mono-track text-[9px] uppercase text-ink-500 leading-tight">Public<br/>Repos</div>
+              <div id="stat-repos" class="mt-1.5 text-2xl font-semibold tabular-nums text-ink-900">—</div>
+            </div>
+            <div class="rounded-xl border border-neutral-200 p-3">
+              <div class="mono-track text-[9px] uppercase text-ink-500 leading-tight">Stars<br/>Earned</div>
+              <div id="stat-stars" class="mt-1.5 text-2xl font-semibold tabular-nums text-ink-900">—</div>
             </div>
           </div>
+
+          <div class="mt-5 flex items-center justify-between">
+            <div class="mono-track text-[10px] uppercase text-ink-700">Activity Pulse</div>
+            <div class="flex items-center gap-1.5">
+              <span class="pulse-dot" aria-hidden="true"></span>
+              <span class="mono-track text-[9px] uppercase text-ink-500">Live</span>
+            </div>
+          </div>
+
+          <div class="mt-2.5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+            <div class="mono-track text-[9px] uppercase text-ink-500 mb-2.5">Realtime Logs</div>
+            <ul id="activity-log" class="space-y-2.5 min-h-[160px]">
+              <li class="flex items-start gap-3 text-xs">
+                <span class="mono-track text-[9px] uppercase text-ink-500 w-12 mt-0.5 shrink-0">···</span>
+                <span class="flex-1 text-ink-500">Loading recent activity…</span>
+              </li>
+            </ul>
+          </div>
         </div>
-      </div>
+      </aside>
 
     </div>
   </section>
@@ -400,14 +606,20 @@
         <div class="md:col-span-3 reveal">
           <h2 class="text-2xl font-semibold tracking-tight text-ink-900">About</h2>
           <p class="mt-4 text-ink-600 leading-relaxed">
-            I work at the intersection of <strong class="text-ink-800">mathematical theory</strong> and <strong class="text-ink-800">ML engineering</strong>.
-            My research focuses on problems where rigorous foundations meet practical implementation: training stability,
-            loss landscape geometry, and building reproducible research prototypes.
+            I'm an undergraduate at the <strong class="text-ink-800">University of Waterloo</strong>, studying
+            <strong class="text-ink-800">Combinatorics & Optimization</strong> with a Statistics minor.
+            I came to machine learning through math — drawn to clean structure and curious about why complex systems behave the way they do.
           </p>
           <p class="mt-3 text-ink-600 leading-relaxed">
-            Currently exploring how <strong class="text-ink-800">topological data analysis</strong> can inform optimizer behavior,
-            and how <strong class="text-ink-800">world models</strong> can learn latent dynamics in high-frequency environments.
-            I care about evaluation discipline and making research code that others can actually run.
+            My research interests sit at the intersection of <strong class="text-ink-800">reinforcement learning</strong>,
+            <strong class="text-ink-800">world models</strong>, and mathematical optimization — broadly, how agents learn to predict and control
+            the dynamics of their environments, and how training procedures stay stable as systems scale up.
+            I also enjoy the systems side of getting research ideas to actually run end-to-end.
+          </p>
+          <p class="mt-3 text-ink-600 leading-relaxed">
+            Outside of research I'm a regular hackathon participant and occasional open-source contributor,
+            and a believer in evaluation discipline — clean baselines, honest metrics,
+            and writing code other people can clone and run.
           </p>
         </div>
 
@@ -547,125 +759,115 @@
     </div>
   </section>
 
-  <!-- Projects -->
-  <section id="projects" class="py-16 border-t border-neutral-200">
-    <div class="max-w-6xl mx-auto px-4">
-      <div class="flex items-end justify-between gap-6">
-        <div class="reveal">
-          <h2 class="text-2xl font-semibold tracking-tight text-ink-900">Research Projects</h2>
-          <p class="mt-2 text-ink-600">Selected work in reinforcement learning, optimization, and LLM systems.</p>
-        </div>
+  <!-- Projects (Featured Work) -->
+  <section id="projects" class="relative py-24 border-t border-neutral-200 overflow-hidden">
+    <div class="absolute inset-0 proj-section-decor opacity-50 pointer-events-none"></div>
 
-        <div class="hidden md:flex items-center gap-2 text-xs text-ink-700 reveal" role="tablist" aria-label="Project filters">
-          <button class="filter px-3 py-1.5 rounded-full border border-neutral-300 hover:bg-neutral-100 transition" data-filter="all">All</button>
-          <button class="filter px-3 py-1.5 rounded-full border border-neutral-300 hover:bg-neutral-100 transition" data-filter="rl">RL</button>
-          <button class="filter px-3 py-1.5 rounded-full border border-neutral-300 hover:bg-neutral-100 transition" data-filter="opt">Optimization</button>
-          <button class="filter px-3 py-1.5 rounded-full border border-neutral-300 hover:bg-neutral-100 transition" data-filter="llm">LLM</button>
+    <div class="relative max-w-6xl mx-auto px-4">
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-10 reveal">
+        <div class="max-w-2xl">
+          <span class="inline-flex px-4 py-1.5 rounded-full border border-neutral-300 mono-track text-[11px] uppercase text-ink-700">
+            Featured Work
+          </span>
+          <h2 class="mt-6 text-4xl md:text-5xl font-semibold tracking-tight leading-[1.1] text-ink-900">
+            Research, hackathon, and<br/>open-source builds.
+          </h2>
+          <p class="mt-5 text-ink-600 max-w-xl leading-relaxed">
+            A snapshot of what I build outside the classroom — papers turned into runnable systems, hackathon prototypes, and side experiments.
+            Each card links to a write-up, repo, or demo.
+          </p>
         </div>
+        <a href="https://github.com/SVAH-X" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-3 px-5 py-3 rounded-full border border-neutral-300 hover:bg-neutral-100 mono-track text-[11px] uppercase text-ink-900 transition whitespace-nowrap self-start lg:self-end">
+          <span aria-hidden="true">↗</span> Find me on GitHub
+        </a>
       </div>
 
-      <div class="mt-6 grid md:grid-cols-2 gap-6">
+      <div class="mt-14 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        <article class="project spotlight reveal p-7 rounded-3xl border border-neutral-200 bg-white shadow-soft md:col-span-2"
-                 data-tags="rl" aria-label="Geometry Dash World-Model Agent">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-3">
-              <div class="text-xs uppercase tracking-wide text-ink-500">World Models · Reinforcement Learning</div>
-              <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-300 text-xs text-ink-800">
-                Research prototype
-              </span>
-            </div>
-            <a href="https://github.com/SVAH-X/gd_agent" target="_blank" rel="noopener"
-               class="text-xs underline decoration-neutral-300 hover:decoration-ink-800 text-ink-700">
-              GitHub →
-            </a>
+        <!-- AlterEgo (LA Hacks 2026) -->
+        <article class="reveal proj-card group flex flex-col rounded-3xl border overflow-hidden shadow-soft">
+          <div class="proj-card-img aspect-[4/3] overflow-hidden">
+            <img src="/assets/alterego.png" alt="AlterEgo cover" class="w-full h-full object-cover" loading="lazy" />
           </div>
-
-          <h3 class="mt-3 text-2xl md:text-3xl font-semibold tracking-tight text-ink-900">
-            Geometry Dash World-Model Agent (DreamerV3-style)
-          </h3>
-          <p class="mt-3 text-ink-600">
-            A DreamerV3-style agent for a 60Hz physics-driven game environment with tight failure constraints,
-            built with a custom Gymnasium stack, Windows↔WSL synchronization, and high-frequency logging for reproducible evaluation.
-          </p>
-
-          <div class="mt-4 flex flex-wrap gap-2 text-xs text-ink-700">
-            <span class="px-2 py-1 rounded-full border border-neutral-300">JAX</span>
-            <span class="px-2 py-1 rounded-full border border-neutral-300">DreamerV3-style</span>
-            <span class="px-2 py-1 rounded-full border border-neutral-300">Gymnasium</span>
-            <span class="px-2 py-1 rounded-full border border-neutral-300">Windows↔WSL bridge</span>
-            <span class="px-2 py-1 rounded-full border border-neutral-300">High-frequency logger</span>
-          </div>
-
-          <div class="mt-6 grid md:grid-cols-3 gap-4">
-            <div class="p-4 rounded-2xl border border-neutral-200 bg-neutral-50">
-              <div class="text-sm font-medium text-ink-900">Environment</div>
-              <div class="mt-1 text-sm text-ink-600">Custom Gymnasium env + reproducible evaluation harness.</div>
+          <div class="proj-grid-pattern p-6 flex flex-col flex-1">
+            <h3 class="text-xl font-semibold text-ink-900 leading-snug">AlterEgo — Future Self Simulator</h3>
+            <p class="mt-3 text-sm text-ink-600 leading-relaxed">
+              From a 7-question intake, a multi-phase AI pipeline projects your life 20 years forward — voice-cloned narration, age-progressed portraits,
+              and an interactive chat with your simulated future self.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="px-3 py-1 rounded-full border border-neutral-300 text-[11px] text-ink-700">Claude</span>
+              <span class="px-3 py-1 rounded-full border border-neutral-300 text-[11px] text-ink-700">FastAPI</span>
+              <span class="px-3 py-1 rounded-full border border-neutral-300 text-[11px] text-ink-700">React</span>
+              <span class="px-3 py-1 rounded-full border border-neutral-300 text-[11px] text-ink-700">ElevenLabs</span>
             </div>
-            <div class="p-4 rounded-2xl border border-neutral-200 bg-neutral-50">
-              <div class="text-sm font-medium text-ink-900">Systems</div>
-              <div class="mt-1 text-sm text-ink-600">Windows↔WSL bridge to sync observations/state and actions.</div>
-            </div>
-            <div class="p-4 rounded-2xl border border-neutral-200 bg-neutral-50">
-              <div class="text-sm font-medium text-ink-900">Debugging</div>
-              <div class="mt-1 text-sm text-ink-600">High-frequency trajectories for offline analysis and sanity checks.</div>
+            <div class="mt-6 pt-5 border-t border-neutral-200 flex items-center justify-between mono-track text-[10px] uppercase text-ink-500">
+              <span>LA Hacks &middot; 2026</span>
+              <a href="https://devpost.com/software/alterego-8uke34" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 hover:text-ink-900 transition">
+                <span aria-hidden="true">↗</span> Devpost
+              </a>
             </div>
           </div>
         </article>
 
-        <article class="project spotlight reveal p-6 rounded-3xl border border-neutral-200 bg-white shadow-soft"
-                 data-tags="opt" aria-label="TopoAdamW optimizer">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="text-xs uppercase tracking-wide text-ink-500">Optimization · TDA</div>
-            <a href="https://github.com/SVAH-X/topoadamw" target="_blank" rel="noopener"
-               class="text-xs underline decoration-neutral-300 hover:decoration-ink-800 text-ink-700">
-              GitHub →
-            </a>
+        <!-- Geometry Dash World-Model Agent -->
+        <article class="reveal proj-card group flex flex-col rounded-3xl border overflow-hidden shadow-soft">
+          <div class="proj-card-img aspect-[4/3] overflow-hidden">
+            <img src="/assets/gd.png" alt="Geometry Dash logo" class="w-full h-full object-cover" loading="lazy" />
           </div>
-          <h3 class="mt-2 text-xl font-medium text-ink-900">TopoAdamW: TDA-Guided Meta-Optimizer</h3>
-          <p class="mt-2 text-ink-600 text-sm">
-            A PyTorch optimizer that uses GUDHI-based TDA features to probe local loss-landscape geometry
-            (sharp vs. flat regions) and adapt update behavior with stability safeguards.
-          </p>
-          <div class="mt-4 grid grid-cols-2 gap-3">
-            <div class="p-3 rounded-xl bg-neutral-50 border border-neutral-100">
-              <div class="text-xs text-ink-500">Method</div>
-              <div class="text-sm font-medium text-ink-800 mt-0.5">Topological feature extraction</div>
+          <div class="proj-grid-pattern p-6 flex flex-col flex-1">
+            <h3 class="text-xl font-semibold text-ink-900 leading-snug">Geometry Dash World-Model Agent</h3>
+            <p class="mt-3 text-sm text-ink-600 leading-relaxed">
+              A DreamerV3-style RL agent learning a 60Hz physics game from pixels — custom Gymnasium env, Windows↔WSL bridge for tight observation/action sync,
+              and high-frequency logging for reproducible eval.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="px-3 py-1 rounded-full border border-neutral-300 text-[11px] text-ink-700">JAX</span>
+              <span class="px-3 py-1 rounded-full border border-neutral-300 text-[11px] text-ink-700">DreamerV3</span>
+              <span class="px-3 py-1 rounded-full border border-neutral-300 text-[11px] text-ink-700">Gymnasium</span>
+              <span class="px-3 py-1 rounded-full border border-neutral-300 text-[11px] text-ink-700">WSL Bridge</span>
             </div>
-            <div class="p-3 rounded-xl bg-neutral-50 border border-neutral-100">
-              <div class="text-xs text-ink-500">Benchmark</div>
-              <div class="text-sm font-medium text-ink-800 mt-0.5">CIFAR-10 vs AdamW</div>
+            <div class="mt-6 pt-5 border-t border-neutral-200 flex items-center justify-between mono-track text-[10px] uppercase text-ink-500">
+              <span>Research Prototype &middot; 2025</span>
+              <a href="https://github.com/SVAH-X/gd_agent" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 hover:text-ink-900 transition">
+                <span aria-hidden="true">↗</span> GitHub
+              </a>
             </div>
-          </div>
-          <div class="mt-3 flex flex-wrap gap-2 text-xs text-ink-600">
-            <span class="px-2 py-1 rounded-full border border-neutral-300">PyTorch</span>
-            <span class="px-2 py-1 rounded-full border border-neutral-300">GUDHI</span>
-            <span class="px-2 py-1 rounded-full border border-neutral-300">Loss landscape</span>
           </div>
         </article>
 
-        <article class="project spotlight reveal p-6 rounded-3xl border border-neutral-200 bg-white shadow-soft"
-                 data-tags="llm" aria-label="Efficient LLM fine-tuning">
-          <div class="text-xs uppercase tracking-wide text-ink-500">LLM Systems</div>
-          <h3 class="mt-1 text-xl font-medium text-ink-900">Efficient LLM Fine-Tuning</h3>
-          <p class="mt-2 text-ink-600 text-sm">
-            Memory-efficient fine-tuning pipelines for Dream-7B and GPT-OSS-20B using QLoRA, gradient checkpointing,
-            and DeepSpeed optimizations.
-          </p>
-          <div class="mt-4 grid grid-cols-2 gap-3">
-            <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-100">
-              <div class="text-xs text-emerald-600">Math Reasoning</div>
-              <div class="text-lg font-semibold text-emerald-700">+20%</div>
-            </div>
-            <div class="p-3 rounded-xl bg-sky-50 border border-sky-100">
-              <div class="text-xs text-sky-600">VRAM Reduction</div>
-              <div class="text-lg font-semibold text-sky-700">60%</div>
+        <!-- Efficient LLM Fine-Tuning -->
+        <article class="reveal proj-card group flex flex-col rounded-3xl border overflow-hidden shadow-soft">
+          <div class="proj-card-img aspect-[4/3] flex items-center justify-center px-8 py-10">
+            <div class="text-center">
+              <div class="text-[44px] leading-none font-semibold tracking-tight proj-card-mark">
+                LLM<span style="color:#7c3aed">/</span>FT
+              </div>
+              <div class="mt-3 mono-track text-[10px] uppercase proj-card-mark-sub">QLoRA &middot; DeepSpeed</div>
             </div>
           </div>
-          <div class="mt-3 flex flex-wrap gap-2 text-xs text-ink-600">
-            <span class="px-2 py-1 rounded-full border border-neutral-300">DeepSpeed</span>
-            <span class="px-2 py-1 rounded-full border border-neutral-300">QLoRA 4-bit</span>
-            <span class="px-2 py-1 rounded-full border border-neutral-300">RunPod</span>
+          <div class="proj-grid-pattern p-6 flex flex-col flex-1">
+            <h3 class="text-xl font-semibold text-ink-900 leading-snug">Efficient LLM Fine-Tuning</h3>
+            <p class="mt-3 text-sm text-ink-600 leading-relaxed">
+              Memory-efficient fine-tuning pipelines for Dream-7B and GPT-OSS-20B with QLoRA, gradient checkpointing, and DeepSpeed —
+              <strong class="text-ink-900">+20%</strong> on math reasoning at <strong class="text-ink-900">60% less VRAM</strong>.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="px-3 py-1 rounded-full border border-neutral-300 text-[11px] text-ink-700">PyTorch</span>
+              <span class="px-3 py-1 rounded-full border border-neutral-300 text-[11px] text-ink-700">DeepSpeed</span>
+              <span class="px-3 py-1 rounded-full border border-neutral-300 text-[11px] text-ink-700">QLoRA 4-bit</span>
+              <span class="px-3 py-1 rounded-full border border-neutral-300 text-[11px] text-ink-700">HuggingFace</span>
+            </div>
+            <div class="mt-6 pt-5 border-t border-neutral-200 flex items-center justify-between mono-track text-[10px] uppercase text-ink-500">
+              <span>Research &middot; 2025</span>
+              <a href="https://github.com/SVAH-X" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 hover:text-ink-900 transition">
+                <span aria-hidden="true">↗</span> GitHub
+              </a>
+            </div>
           </div>
         </article>
 
@@ -772,6 +974,163 @@
     // Year
     document.getElementById('y').textContent = new Date().getFullYear();
 
+    // ===== Activity Pulse: live GitHub stats + curated activity log =====
+    (function(){
+      var GH_USER = 'SVAH-X';
+      var STATS_CACHE = 'activity-stats-v1';
+      var EVENTS_CACHE = 'activity-events-v1';
+      var TTL = 60 * 60 * 1000;
+      var $ = function(id){ return document.getElementById(id); };
+      var logEl = $('activity-log');
+      if (!logEl) return;
+
+      function getCache(key){
+        try {
+          var raw = localStorage.getItem(key);
+          if (!raw) return null;
+          var parsed = JSON.parse(raw);
+          if (Date.now() - parsed.ts > TTL) return null;
+          return parsed.data;
+        } catch(e){ return null; }
+      }
+      function setCache(key, data){
+        try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data: data })); } catch(e){}
+      }
+
+      function fmtDate(d){
+        var dt = new Date(d);
+        if (isNaN(dt)) return '···';
+        var m = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][dt.getMonth()];
+        return m + ' ' + dt.getDate();
+      }
+      function escapeHtml(s){
+        return String(s).replace(/[&<>"']/g, function(c){
+          return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+        });
+      }
+      function renderEntries(entries){
+        if (!entries.length){
+          logEl.innerHTML = '<li class="text-xs text-ink-500">No recent activity yet — check back soon.</li>';
+          return;
+        }
+        logEl.innerHTML = entries.slice(0, 5).map(function(e){
+          var src = (e.source || 'LOG').toLowerCase();
+          var srcCls = 'src-' + src;
+          var arrow = e.url ? '<a href="' + escapeHtml(e.url) + '" target="_blank" rel="noopener" class="text-ink-500 hover:text-ink-900 mt-0.5 shrink-0" aria-label="Open">↗</a>' : '<span class="w-3 shrink-0"></span>';
+          return '<li class="activity-log-entry flex items-start gap-3 text-xs">'
+            + '<span class="mono-track text-[9px] uppercase text-ink-500 w-12 mt-0.5 shrink-0">' + fmtDate(e.date) + '</span>'
+            + '<span class="flex-1 leading-snug text-ink-700"><span class="src-tag ' + srcCls + '">' + escapeHtml(e.source || 'LOG') + '</span>' + escapeHtml(e.title) + '</span>'
+            + arrow
+            + '</li>';
+        }).join('');
+      }
+
+      function trim(s, n){ return (s && s.length > n) ? s.slice(0, n - 1) + '…' : s; }
+
+      function eventToLog(ev){
+        var repo = (ev.repo && ev.repo.name) || '';
+        var title = '', url = repo ? ('https://github.com/' + repo) : null;
+        if (ev.type === 'PushEvent'){
+          var c = (ev.payload && ev.payload.commits && ev.payload.commits[0] && ev.payload.commits[0].message) || 'commit';
+          title = repo + ' · push · ' + c.split('\n')[0];
+        } else if (ev.type === 'PullRequestEvent'){
+          var pr = ev.payload && ev.payload.pull_request;
+          title = repo + ' #' + ev.payload.number + ' · PR · ' + (pr && pr.title || '');
+          url = pr && pr.html_url || url;
+        } else if (ev.type === 'IssuesEvent'){
+          var iss = ev.payload && ev.payload.issue;
+          title = repo + ' #' + iss.number + ' · Issue · ' + iss.title;
+          url = iss.html_url;
+        } else if (ev.type === 'CreateEvent'){
+          title = repo + ' · created ' + (ev.payload && ev.payload.ref_type || 'ref');
+        } else if (ev.type === 'WatchEvent'){
+          title = repo + ' · starred';
+        } else if (ev.type === 'ForkEvent'){
+          title = repo + ' · forked';
+        } else if (ev.type === 'PullRequestReviewEvent'){
+          title = repo + ' · PR review';
+        } else {
+          title = repo + ' · ' + ev.type.replace('Event','').toLowerCase();
+        }
+        return { date: ev.created_at, source: 'GITHUB', title: trim(title, 90), url: url };
+      }
+
+      // Apply cached entries fast, then refresh in background
+      var cachedStats = getCache(STATS_CACHE);
+      if (cachedStats){
+        if (cachedStats.followers != null) $('stat-followers').textContent = cachedStats.followers;
+        if (cachedStats.repos != null) $('stat-repos').textContent = cachedStats.repos;
+      }
+
+      function fetchJson(url){
+        return fetch(url, { cache: 'no-cache' }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
+      }
+
+      Promise.all([
+        fetchJson('https://api.github.com/users/' + GH_USER),
+        fetchJson('https://api.github.com/users/' + GH_USER + '/events/public'),
+        fetchJson('https://api.github.com/users/' + GH_USER + '/repos?per_page=100&sort=updated'),
+        fetchJson('/assets/activity.json')
+      ]).then(function(results){
+        var user = results[0], events = results[1], repos = results[2], curated = results[3] || [];
+        if (user){
+          $('stat-followers').textContent = user.followers != null ? user.followers : '—';
+          $('stat-repos').textContent = user.public_repos != null ? user.public_repos : '—';
+          setCache(STATS_CACHE, { followers: user.followers, repos: user.public_repos });
+        }
+        if (Array.isArray(repos)){
+          var stars = repos.reduce(function(s, r){ return s + (r.stargazers_count || 0); }, 0);
+          $('stat-stars').textContent = stars;
+          var stat = getCache(STATS_CACHE) || {};
+          stat.stars = stars;
+          setCache(STATS_CACHE, stat);
+        } else {
+          var c = getCache(STATS_CACHE);
+          if (c && c.stars != null) $('stat-stars').textContent = c.stars;
+        }
+
+        var ghLogs = Array.isArray(events) ? events.slice(0, 8).map(eventToLog) : [];
+        if (Array.isArray(events)) setCache(EVENTS_CACHE, ghLogs);
+
+        // Latest only — no rotation. Combine real GitHub events + curated entries,
+        // sort by date descending, show top 5.
+        var all = ghLogs.concat(curated)
+          .filter(function(e){ return e && e.date && e.title; })
+          .sort(function(a,b){ return new Date(b.date) - new Date(a.date); });
+
+        if (!all.length){
+          var cachedEv = getCache(EVENTS_CACHE) || [];
+          all = cachedEv.concat(curated).sort(function(a,b){ return new Date(b.date) - new Date(a.date); });
+        }
+        renderEntries(all);
+      });
+    })();
+
+    // Theme toggle
+    (function(){
+      function toggleTheme(){
+        var current = document.documentElement.getAttribute('data-theme') || 'light';
+        var next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        try { localStorage.setItem('theme', next); } catch(e){}
+      }
+      var btn = document.getElementById('themeBtn');
+      var btnM = document.getElementById('themeBtnMobile');
+      if (btn) btn.addEventListener('click', toggleTheme);
+      if (btnM) btnM.addEventListener('click', toggleTheme);
+
+      // Follow system changes when user hasn't manually picked
+      if (window.matchMedia){
+        var mq = window.matchMedia('(prefers-color-scheme: dark)');
+        var sysListener = function(e){
+          try { if (localStorage.getItem('theme')) return; } catch(err){}
+          document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+        };
+        if (mq.addEventListener) mq.addEventListener('change', sysListener);
+        else if (mq.addListener) mq.addListener(sysListener);
+      }
+    })();
+
     // Mobile menu
     const mBtn = document.getElementById('mBtn');
     const mMenu = document.getElementById('mMenu');
@@ -845,289 +1204,23 @@
     filterBtns.forEach(b=>b.addEventListener('click', ()=>applyFilter(b.dataset.filter)));
     applyFilter('all');
 
-        
-    // Slow drifting full-screen neural network background (with auto "readability carve-outs")
+    // Static dot grid: parallax shift only when scrolling (no idle animation)
     (function(){
-      const canvas = document.getElementById('graphbg');
-      if(!canvas) return;
-      const ctx = canvas.getContext('2d');
-
+      const grid = document.getElementById('dotgrid');
+      if(!grid) return;
       const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-      let w=0, h=0, dpr=1;
-
-      const nodes = [];
-      const edges = [];
-      let N = 160;
-
-      const rand = (a,b)=>a + Math.random()*(b-a);
-
-      function resize(){
-        dpr = Math.min(2, window.devicePixelRatio || 1);
-        w = canvas.width = Math.floor(window.innerWidth * dpr);
-        h = canvas.height = Math.floor(window.innerHeight * dpr);
-        canvas.style.width = window.innerWidth + 'px';
-        canvas.style.height = window.innerHeight + 'px';
-
-        const area = window.innerWidth * window.innerHeight;
-        if(area < 500000) N = 110;
-        else if(area < 900000) N = 150;
-        else N = 190;
-      }
-
-      function buildGraph(){
-        nodes.length = 0;
-        edges.length = 0;
-
-        for(let i=0;i<N;i++){
-          nodes.push({
-            x: rand(-1.25, 1.25),
-            y: rand(-1.25, 1.25),
-            z: rand(-1.25, 1.25),
-            vx: rand(-0.00035, 0.00035),
-            vy: rand(-0.00035, 0.00035),
-            vz: rand(-0.00025, 0.00025),
-            s: rand(0.7, 1.4)
+      if(reduce) return;
+      let ticking = false;
+      window.addEventListener('scroll', () => {
+        if(!ticking){
+          requestAnimationFrame(() => {
+            grid.style.backgroundPosition = `0 ${-window.scrollY * 0.25}px`;
+            ticking = false;
           });
+          ticking = true;
         }
-
-        // k-nearest neighbors in 3D (moderate k for density)
-        const k = 4;
-        for(let i=0;i<N;i++){
-          const ds = [];
-          const a = nodes[i];
-          for(let j=0;j<N;j++){
-            if(i===j) continue;
-            const b = nodes[j];
-            const dx = a.x - b.x;
-            const dy = a.y - b.y;
-            const dz = a.z - b.z;
-            ds.push([dx*dx + dy*dy + dz*dz, j]);
-          }
-          ds.sort((u,v)=>u[0]-v[0]);
-          for(let t=0;t<k;t++){
-            const j = ds[t][1];
-            if(i < j) edges.push([i,j]);
-          }
-        }
-      }
-
-      function rotY(x,z,a){
-        const ca = Math.cos(a), sa = Math.sin(a);
-        return [x*ca + z*sa, -x*sa + z*ca];
-      }
-      function rotX(y,z,a){
-        const ca = Math.cos(a), sa = Math.sin(a);
-        return [y*ca - z*sa, y*sa + z*ca];
-      }
-
-      function project(p, ax, ay, px, py, zoom){
-        let x=p.x, y=p.y, z=p.z;
-        [x,z] = rotY(x,z,ax);
-        [y,z] = rotX(y,z,ay);
-
-        const depth = 3.0;
-        const zz = z + 1.15;
-        const scale = (depth / (depth + zz)) * zoom;
-
-        const X = (x + px) * scale * w * 0.40 + w * 0.5;
-        const Y = (y + py) * scale * h * 0.40 + h * 0.5;
-        return {X, Y, A: scale};
-      }
-
-      function step(){
-        // subtle internal motion; bounds ensure the network stays spread out
-        const b = 1.35;
-        for(const p of nodes){
-          p.x += p.vx; p.y += p.vy; p.z += p.vz;
-
-          if(p.x < -b || p.x > b) p.vx *= -1;
-          if(p.y < -b || p.y > b) p.vy *= -1;
-          if(p.z < -b || p.z > b) p.vz *= -1;
-
-          p.vx *= 0.9996;
-          p.vy *= 0.9996;
-          p.vz *= 0.9997;
-        }
-      }
-
-      // --- Readability carve-outs (lightly whiten regions behind text blocks) ---
-      const safeSelectors = [
-        'header',
-        'section.pt-14.pb-12 .max-w-6xl > div:first-child',
-        '#about .md\\:col-span-2',
-        '#projects .flex.items-end',
-        '#contact .mt-5',
-        'footer .max-w-6xl'
-      ];
-      let safeEls = [];
-      let zones = [];
-      let zonesDirty = true;
-      let lastZonesMs = 0;
-
-      function refreshSafeEls(){
-        const out = [];
-        safeSelectors.forEach(sel=>{
-          document.querySelectorAll(sel).forEach(el=>out.push(el));
-        });
-        safeEls = out;
-        zonesDirty = true;
-      }
-      refreshSafeEls();
-
-      window.addEventListener('scroll', ()=>{ zonesDirty = true; }, {passive:true});
-
-      function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
-
-      function computeZones(nowMs){
-        // throttle recomputation
-        if(!zonesDirty && (nowMs - lastZonesMs) < 140) return;
-        lastZonesMs = nowMs;
-        zonesDirty = false;
-
-        const z = [];
-        for(const el of safeEls){
-          if(!el || !el.getBoundingClientRect) continue;
-          const r = el.getBoundingClientRect();
-          if(r.width < 30 || r.height < 20) continue;
-
-          // ignore off-screen
-          if(r.bottom < 0 || r.top > window.innerHeight) continue;
-
-          // padding that scales with size a bit
-          const pad = clamp(Math.min(r.width, r.height) * 0.08, 16, 28);
-          const x = (r.left - pad) * dpr;
-          const y = (r.top - pad) * dpr;
-          const ww = (r.width + pad*2) * dpr;
-          const hh = (r.height + pad*2) * dpr;
-
-          // clip to canvas
-          const cx = clamp(x, 0, w);
-          const cy = clamp(y, 0, h);
-          const cww = clamp(x + ww, 0, w) - cx;
-          const chh = clamp(y + hh, 0, h) - cy;
-          if(cww <= 0 || chh <= 0) continue;
-
-          z.push({x:cx, y:cy, w:cww, h:chh, r: Math.min(22*dpr, cww/2, chh/2)});
-        }
-        zones = z;
-      }
-
-      function roundRectPath(x, y, w0, h0, r){
-        const rr = Math.max(0, Math.min(r, w0/2, h0/2));
-        ctx.beginPath();
-        ctx.moveTo(x + rr, y);
-        ctx.arcTo(x + w0, y, x + w0, y + h0, rr);
-        ctx.arcTo(x + w0, y + h0, x, y + h0, rr);
-        ctx.arcTo(x, y + h0, x, y, rr);
-        ctx.arcTo(x, y, x + w0, y, rr);
-        ctx.closePath();
-      }
-
-      function paintZones(){
-        if(!zones.length) return;
-
-        // multi-layer feather for a soft "carved-out" look
-        const layers = [
-          {pad: 18*dpr, a: 0.30},
-          {pad: 10*dpr, a: 0.32},
-          {pad:  4*dpr, a: 0.48}
-        ];
-
-        for(const z of zones){
-          for(const L of layers){
-            const x = z.x - L.pad;
-            const y = z.y - L.pad;
-            const ww = z.w + L.pad*2;
-            const hh = z.h + L.pad*2;
-            const rr = z.r + L.pad*0.75;
-
-            ctx.fillStyle = `rgba(255,255,255,${L.a})`;
-            roundRectPath(x, y, ww, hh, rr);
-            ctx.fill();
-          }
-        }
-      }
-
-      function draw(t){
-        ctx.clearRect(0,0,w,h);
-
-        // base veil so the network never overwhelms the page
-        ctx.fillStyle = 'rgba(255,255,255,0.28)';
-        ctx.fillRect(0,0,w,h);
-
-        const time = t * 0.001;
-
-        // slow global "sway" (no mouse interaction)
-        const ax = 0.18 * Math.sin(time * 0.35);
-        const ay = 0.14 * Math.cos(time * 0.28);
-        const px = 0.06 * Math.sin(time * 0.22);
-        const py = 0.05 * Math.cos(time * 0.20);
-        const zoom = 1.03 + 0.02 * Math.sin(time * 0.18);
-
-        const P = nodes.map(p => project(p, ax, ay, px, py, zoom));
-
-        // edges
-        ctx.lineWidth = 1 * dpr;
-        const maxDist = 900 * dpr;
-
-        for(const [i,j] of edges){
-          const a = P[i], b = P[j];
-          const dist = Math.hypot(a.X-b.X, a.Y-b.Y);
-          const closeness = Math.max(0, 1 - dist / maxDist);
-          if(closeness <= 0) continue;
-
-          const depthA = (a.A + b.A) * 0.5;
-          const alpha = Math.min(0.26, 0.04 + closeness * 0.22) * (0.55 + depthA * 0.70);
-
-          ctx.strokeStyle = `rgba(15,23,42,${alpha})`;
-          ctx.beginPath();
-          ctx.moveTo(a.X, a.Y);
-          ctx.lineTo(b.X, b.Y);
-          ctx.stroke();
-        }
-
-        // nodes
-        for(let i=0;i<nodes.length;i++){
-          const p = nodes[i];
-          const q = P[i];
-          const r = (1.25 + 2.8 * p.s) * q.A * dpr;
-
-          const alpha = Math.min(0.68, 0.10 + q.A * 0.30);
-          ctx.fillStyle = `rgba(2,132,199,${alpha})`;
-
-          ctx.beginPath();
-          ctx.arc(q.X, q.Y, r, 0, Math.PI*2);
-          ctx.fill();
-        }
-
-        // carve-outs behind text blocks
-        computeZones(performance.now());
-        paintZones();
-      }
-
-      function animate(t){
-        if(reduce){
-          draw(0);
-          return;
-        }
-        draw(t);
-        step();
-        requestAnimationFrame(animate);
-      }
-
-      resize();
-      buildGraph();
-
-      window.addEventListener('resize', ()=>{
-        resize();
-        buildGraph();
-        refreshSafeEls();
-      });
-
-      requestAnimationFrame(animate);
-    })();;
-;
+      }, { passive: true });
+    })();
   </script>
 </body>
 </html>
